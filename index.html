@@ -565,6 +565,18 @@
   .hero-sticker .kico{animation:lulu-pop .7s cubic-bezier(.34,1.56,.64,1) both,lulu-sway 4.8s ease-in-out 1.2s infinite}
 
   @media (prefers-reduced-motion:reduce){.kico,.brand-avatar,.hero-avatar{animation:none!important}}
+
+/* 主题切换胶囊 */
+.theme-switch{
+  position:fixed;right:18px;bottom:70px;z-index:400;display:inline-flex;align-items:center;gap:7px;
+  padding:9px 15px;border-radius:999px;cursor:pointer;text-decoration:none;
+  background:rgba(255,251,246,.95);border:1px solid #FFD9A0;color:#B55A1F;
+  font-size:12.5px;font-weight:700;box-shadow:0 8px 20px rgba(232,128,58,.22);
+  backdrop-filter:blur(8px);transition:transform .18s,box-shadow .18s;
+}
+.theme-switch:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(232,128,58,.3)}
+.theme-switch em{font-style:normal;font-size:15px}
+@media (max-width:760px){.theme-switch{right:12px;bottom:64px;padding:8px 13px;font-size:11.5px}}
 </style>
 </head>
 <body>
@@ -4506,5 +4518,7 @@ if (window.innerWidth > 860) document.getElementById('sidebar').style.display = 
 
 
 </script>
+
+<a class="theme-switch" href="cream.html" title="切换到奶油云朵主题"><em>🐑</em> 奶油云朵主题</a>
 </body>
 </html>
