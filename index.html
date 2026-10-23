@@ -580,6 +580,7 @@
 @media (max-width:760px){.theme-switch{right:12px;bottom:64px;padding:8px 13px;font-size:11.5px}}
 
 /* ===== 奶油云朵主题（html[data-theme=cream] 时生效） ===== */
+html[data-theme="cream"]{--primary:#C8934A;--primary-strong:#B58553;--primary-deep:#8A6242;--primary-50:#FFFCF5;--primary-100:#FBEFD9;--primary-200:#F3DFBE;--primary-300:#EFC793;--primary-400:#E8C9A0;--orange-50:#FFFBF2;--orange-300:#EFC793;--orange:#C8934A;--peach:#E8C9A0;--bg:#FFFBF2;--text:#5B3A1E;--muted:#A08356;--border:#E8D5B5;--amber:#C8934A;}
 html[data-theme="cream"] body{
   font-family:"Nunito","Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   color:#5B3A1E;
@@ -648,6 +649,10 @@ html[data-theme="cream"] .hero-mascot .kico{animation:sheep-in .72s cubic-bezier
   filter:drop-shadow(0 12px 20px rgba(160,116,72,.28))}
 html[data-theme="cream"] .hero-sticker{border:none;background:none;box-shadow:none;border-radius:26px}
 html[data-theme="cream"] .hero-sticker .kico{filter:contrast(1.06) drop-shadow(0 8px 14px rgba(150,105,62,.3))}
+html[data-theme="cream"] .bg-deco span:nth-child(1),html[data-theme="cream"] .bg-deco span:nth-child(7){display:none}
+html[data-theme="cream"] .hero .float-heart.deco-orange{display:none}
+html[data-theme="cream"] .hero-star.gold,html[data-theme="cream"] .hero-star.orange{color:#D9B57E}
+html[data-theme="cream"] .toast{background:linear-gradient(135deg,#D9A259,#B58553);box-shadow:0 8px 24px rgba(181,133,83,.36)}
 html[data-theme="cream"] .btn{border-radius:999px}
 html[data-theme="cream"] .btn.primary{background:linear-gradient(135deg,#EFC793,#D9A259);color:#5B3A1E;box-shadow:0 6px 16px rgba(181,133,83,.28)}
 html[data-theme="cream"] .btn.primary:hover{box-shadow:0 10px 22px rgba(181,133,83,.34)}
@@ -1277,7 +1282,7 @@ function pageHead(icon, title, sub, right){
 function wipPage(emoji, title, sub, extra){
   return pageHead(emoji, title, sub) + `
     <div class="card wip">
-      <div class="em">🍊</div><b>正在装修中</b>
+      <div class="em">${EMO()}</div><b>正在装修中</b>
       <p>这个模块的框架已经搭好，接下来一点点把它填满～</p>
       ${extra||''}
     </div>`;
@@ -1410,6 +1415,7 @@ const THEMES = {
 };
 function themeKey(){ return document.documentElement.dataset.theme === 'cream' ? 'cream' : 'lulu'; }
 function themeInfo(){ return THEMES[themeKey()]; }
+function EMO(){ return document.documentElement.dataset.theme === 'cream' ? '☁️' : '🍊'; }
 function applyTheme(key, keepScroll){
   const t = THEMES[key] ? key : 'lulu';
   document.documentElement.dataset.theme = t;
@@ -1571,7 +1577,7 @@ PAGES['/'] = () => {
       <span class="hero-star" style="top:58%;left:82%;font-size:13px;animation-delay:1.5s">✦</span>
       <span class="hero-star orange" style="top:30%;left:88%;font-size:11px;animation-delay:.1s">✦</span>
       <span class="float-heart" style="top:14px;right:30%">💗</span>
-      <span class="float-heart" style="top:60%;right:10%;animation-delay:1.6s">🍊</span>
+      <span class="float-heart deco-orange" style="top:60%;right:10%;animation-delay:1.6s">🍊</span>
       <span class="float-heart" style="top:24%;right:14%;animation-delay:3s">✨</span>
       <div class="hero-row">
         <div class="hero-mascot">${kico('diet', 104)}</div>
@@ -1601,13 +1607,13 @@ PAGES['/'] = () => {
               ${r===nextRem?'<div class="small muted">⏳ 下一个即将到来</div>':''}</div>
             ${r.repeat!=='daily'?'<span class="chip gray">'+(r.repeat==='weekday'?'工作日':'自定义')+'</span>':''}
           </div>`).join('')
-        : `<div class="muted small" style="padding:8px 0">还没有提醒～<a href="#/reminders" style="color:var(--primary-deep);font-weight:600;text-decoration:none">去建一条</a>，到点准时叫你 🍊</div>`}
+        : `<div class="muted small" style="padding:8px 0">还没有提醒～<a href="#/reminders" style="color:var(--primary-deep);font-weight:600;text-decoration:none">去建一条</a>，到点准时叫你 ${EMO()}</div>`}
       </div>
       <div class="card card-pad">
         <div class="sec-title" style="margin-bottom:6px">${kico('todo',18)} 今日速览 <a class="small" style="color:var(--primary-deep);font-weight:600;margin-left:auto;text-decoration:none" href="#/todo">全部 →</a></div>
         ${progress ? `<div class="small muted" style="margin-bottom:6px">完成进度 ${progress}%</div><div class="progress" style="margin-bottom:10px"><div style="width:${progress}%"></div></div>` : ''}
         ${evs.length ? evs.map(e => `<div class="row"><span class="chip">${esc(e.start_time||'')}</span><span class="grow small">${esc(e.title)}</span></div>`).join('') : ''}
-        ${undone.length ? undone.map(x => `<div class="row"><span>${kico('bell',16)}</span><span class="grow small ${x.priority==='high'?'':'muted'}">${esc(x.title)}</span></div>`).join('') : (evs.length?'':'<div class="muted small" style="padding:8px 0">今天没有安排，享受自由的一天吧 🍊</div>')}
+        ${undone.length ? undone.map(x => `<div class="row"><span>${kico('bell',16)}</span><span class="grow small ${x.priority==='high'?'':'muted'}">${esc(x.title)}</span></div>`).join('') : (evs.length?'':'<div class="muted small" style="padding:8px 0">今天没有安排，享受自由的一天吧 '+EMO()+'</div>')}
       </div>
     </div>
 
@@ -1768,7 +1774,7 @@ PAGES['/hotspot'] = () => {
       <button class="tab ${insHotTab==='hist'?'active':''}" onclick="insHotTab='hist';render()">🗂 历史热点 ${histDates.length?`<span style="font-size:10px">(${histDates.length}天)</span>`:''}</button>
     </div>
     ${insHotTab==='today' ? `
-      ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">🍊 以下为静态示例解读（不会每日变化）。${aiReady()?'点右上「✨ AI 深度解读」，AI 会基于今日真实热榜生成「影响与对策」，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，AI 会基于今日真实热榜生成解读，并每天 7:30 自动更新。'}</span></div>`:''}
+      ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例解读（不会每日变化）。${aiReady()?'点右上「✨ AI 深度解读」，AI 会基于今日真实热榜生成「影响与对策」，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，AI 会基于今日真实热榜生成解读，并每天 7:30 自动更新。'}</span></div>`:''}
       ${todayList.length ? todayList.map(kbHotCard).join('') : kbEmpty('hot','今日解读还没有内容','上方「全网热榜」每天自动抓取真实热搜；配置 AI 后点右上「✨ AI 深度解读」即可生成「影响与对策」')}
       ${manualHot.length ? `
         <div class="sec-title" style="margin:18px 0 10px">📌 我收藏的热点</div>
@@ -2081,7 +2087,7 @@ PAGES['/knowledge'] = () => {
     <div class="sec-title">${kico('robot',18)} 🎯 招聘作战台 · 今日推送${focusTag} ${!usingKbDemo && insLatest && insLatest!==t ? `<span class="chip gray" style="margin-left:6px">${fmtDateCN(insLatest)} 生成</span>` : ''}
       <button class="btn sm ${aiReady()?'primary':''}" style="margin-left:auto" onclick="${aiReady()?'genLearnBatch(false)':'openVdCfg()'}">${kbBusy?'⏳ AI 生成中…':(aiReady()?'✨ AI 生成今日推送':'⚙ 配置 AI 后可自动生成')}</button>
     </div>
-    ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">🍊 以下为静态示例推送（不会每日变化）。${aiReady()?'点上方「✨ AI 生成今日推送」立即生成今日真实内容，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，即可一键生成，并每天 7:30 自动更新。'}资讯类每日更新另见下方「每天 60 秒读懂世界」。</span></div>`:''}
+    ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例推送（不会每日变化）。${aiReady()?'点上方「✨ AI 生成今日推送」立即生成今日真实内容，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，即可一键生成，并每天 7:30 自动更新。'}资讯类每日更新另见下方「每天 60 秒读懂世界」。</span></div>`:''}
     ${cards.length ? cards.map(kbLearnCard).join('') : kbEmpty('robot','作战台推送还没有内容','真实每日更新见下方「每天 60 秒读懂世界」；自己的积累用右上角「记录知识点」沉淀')}
     ${book.length ? book.map(kbBookCard).join('') : ''}
     ${(() => {
