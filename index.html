@@ -993,7 +993,7 @@ const DEFAULT_FEEDS = [
     note:'每天 8:00 关注人社 / 社保 / 就业创业等政策变更，做要点提炼' },
   { id:'hot',    name:'今日热点', emoji:'🔥', icon:'hot', run:'daily',   time:'07:30', weekdays:[],
     kw:[], enabled:true,
-    note:'每天 7:30 抓取全网热点，并用「AI 设置」里的模型筛成「家清选题池」，同步到「热点」页与「视频拆解」' },
+    note:'每天 7:30 抓取全网热点：未配置 Key 时用 Trae 预生成的家清选题库补齐，配置后自动用模型筛选并写入「视频拆解 · 家清选题池」' },
   { id:'tech',   name:'科技前沿', emoji:'🚀', icon:'tech', run:'weekly',  time:'09:00', weekdays:[1,4],
     kw:['AI','科技','大模型','智能','互联网','数字','芯片','机器人'], enabled:true,
     note:'每周一 / 四 9:00 抓取科技趋势内容' },
@@ -1095,6 +1095,10 @@ function renderAll(){ listeners.forEach(fn => fn()); }
 
 function saveLocal(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e){} }
 /* 内置抓取任务的说明文案跟随版本更新（用户改过的时间/开关保持不变） */
+function feedNote(f){
+  const d = DEFAULT_FEEDS.find(x => x.id === f.id);
+  return (d && d.note) || f.note || '';
+}
 function syncFeedNotes(){
   const defs = {};
   DEFAULT_FEEDS.forEach(f => defs[f.id] = f);
@@ -1172,7 +1176,8 @@ function mergeStates(a, b){
     videos: uni(a.videos||[], b.videos||[]),
     creatives: uni(a.creatives||[], b.creatives||[]),
     kbInsights: (()=>{ const u = uni(a.kbInsights||[], b.kbInsights||[]); const norm = s => String(s||'').replace(/[\s\p{P}]+/gu,'').toLowerCase(); const seen = new Set(); return u.filter(x=>{ const k = (x.module_type||'')+'|'+norm(x.title); if(seen.has(k)) return false; seen.add(k); return true; }); })(),
-    vdCfg: (a._localSavedAt||0) >= (b._localSavedAt||0) ? (a.vdCfg||{}) : (b.vdCfg||{}),
+    vdCfg: ((a._keyClearedAt||0) > (b._syncedAt||0)) ? (a.vdCfg||{}) :
+           ((a._localSavedAt||0) >= (b._localSavedAt||0) ? (a.vdCfg||{}) : (b.vdCfg||{})),
     healthChecks: (a._localSavedAt||0) >= (b._localSavedAt||0) ? (a.healthChecks||{}) : (b.healthChecks||{}),
     feeds, jobs, shelf,
     settings: { ...emptyState().settings, ...(b.settings||{}), ...(a.settings||{}) },
@@ -3221,9 +3226,46 @@ function vdRun(id){
   const v = S.videos.find(x=>x.id===id);
   if (v && !vdBusy[id]) callVDAI(v);
 }
+/* 统一错误文案：不暴露技术细节，给出可执行的下一步 */
+function aiErr(e){
+  const m = String(e && e.message || e || '');
+  if (/401|403|invalid.*key|unauthor/i.test(m)) return 'Key 无效或已过期（可留空，改用本地模板）';
+  if (/429|quota|余额|额度|insufficient/i.test(m)) return '当前模型额度已耗尽，请稍后再试';
+  if (/timeout|abort/i.test(m)) return '请求超时，请稍后再试';
+  if (/Failed to fetch|NetworkError|network/i.test(m)) return '网络不可用，已切换本地模式';
+  return m || '请求失败';
+}
+/* 无 Key / 模型不可用时的本地模板拆解（不依赖任何外部服务） */
+const VD_LOCAL_KINDS = [
+  { kw:['锅','油污','厨房','灶'], cat:'痛点解决类',
+    hook:'怼近拍焦黑锅底/厚油污，手指一划留痕', mid:'放大“刷半天刷不掉”的挫败感', demo:'倒清洁剂+热水，静置 10 分钟', end:'一擦见底，前后同机位对比', act:'评论区扣「1」领同款' },
+  { kw:['鞋','鞋柜','除臭','球鞋','袜'], cat:'场景种草类',
+    hook:'开门瞬间捂鼻子，镜头扫过一排鞋', mid:'脱下鞋凑近拍，字幕“自己都受不了”', demo:'喷两下，计时器走 30 秒', end:'同一双鞋再闻，表情反转', act:'点购物车看 3 双装' },
+  { kw:['洗脚','泡脚','脚','汗'], cat:'季节刚需类',
+    hook:'一盆温水+泡脚特写，字幕「第 1 天」', mid:'说出脚汗/异味的真实尴尬场景', demo:'倒入洗脚液，展示泡沫与溶解', end:'擦干后穿袜不粘，字幕「第 7 天」', act:'拍 2 发 3，先囤一箱' },
+  { kw:['洗衣机','洗衣','胶圈','霉'], cat:'测评揭秘类',
+    hook:'拆开胶圈怼近拍黑泥，配惊讶音效', mid:'棉签取样放培养皿做对比', demo:'倒入清洗剂，空转一个标准程序', end:'排水桶里的黑水直接怼镜头', act:'三个月一次，链接在左下角' },
+  { kw:['地板','拖地','瓷砖','拖把','腥味'], cat:'前后对比类',
+    hook:'半干拖把一拖，地面立刻反光倒影', mid:'点出“越拖越腥”的根因在拖把', demo:'换清洁剂+同一把拖把重拖一遍', end:'纸巾擦地不留痕，光脚走一圈', act:'拍下 24 瓶家庭装' },
+  { kw:['小白鞋','发黄','白鞋'], cat:'教程干货类',
+    hook:'两只鞋一只白一只黄并排对比', mid:'说出“洗完发黄”的真实原因', demo:'刷洗→包纸→阴干三步演示', end:'撕纸瞬间的洁白特写', act:'收藏这条，下次照做' },
+];
+function localBreakdown(v){
+  const t = String((v && v.title) || '') + ' ' + String((v && v.note) || '');
+  const k = VD_LOCAL_KINDS.find(x => x.kw.some(w => t.includes(w))) || VD_LOCAL_KINDS[4];
+  return {
+    cat: k.cat,
+    topic: `【本地模板】围绕「${(v && v.title) || '该选题'}」的${k.cat}，主线：痛点 → 演示 → 结果 → 行动`,
+    struct: `0-3s 钩子：${k.hook}；3-8s 放大痛点：${k.mid}；8-20s 产品介入：${k.demo}；20-30s 结果与行动：${k.end}，${k.act}`,
+    copy: `口播参考：①「${k.hook}」；②「你是不是也这样：${k.mid}」；③「别急着换，先看这一步」；④「${k.end}」；⑤「${k.act}」`,
+    bgm: '轻快卡点 BGM（120-130BPM），演示段叠加「叮」音效强调前后对比，结尾音量收一半留白',
+    idea: '可模仿点：同机位前后对比 + 关键数字大字幕 + 结尾一句明确行动指令；封面用「对比图 + 疑问句」'
+  };
+}
 async function callVDAI(v){
   const cfg = S.vdCfg||{};
-  if (!cfg.apiKey) { openVdCfg(); toast('请先配置大模型 API Key'); return; }
+  /* 未配置 Key：直接用本地模板拆解，不弹窗、不阻断 */
+  if (!cfg.apiKey) { applyVdLocal(v, '未启用模型，已用本地模板拆解'); return; }
   vdBusy[v.id] = true; render();
   try {
     const res = await fetchWithTimeout(cfg.apiUrl||'https://api.deepseek.com/v1/chat/completions', 90000, {
@@ -3237,13 +3279,16 @@ async function callVDAI(v){
         ]
       })
     });
-    if (!res.ok) throw new Error('API 返回 ' + res.status);
+    if (!res.ok) {
+      const body = await res.text().catch(()=> '');
+      throw new Error('API 返回 ' + res.status + (body ? ' ' + body.replace(/\s+/g,' ').slice(0,80) : ''));
+    }
     const j = await res.json();
     let txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
     txt = txt.replace(/```json|```/g, '').trim();
     const m = txt.match(/\{[\s\S]*\}/);
     const d = JSON.parse(m ? m[0] : txt);
-    const item = { ...v, status:'done',
+    const item = { ...v, status:'done', local:false,
       cat: d.cat || v.cat || '清洁好物种草类',
       title: d.title || v.title,
       author: d.author || v.author || '待确认',
@@ -3251,9 +3296,16 @@ async function callVDAI(v){
     update({ ...S, videos: S.videos.map(x=>x.id===v.id?item:x) });
     toast('🍊 拆解完成：' + (item.title||'').slice(0,14) + '…');
   } catch(e){
-    toast('拆解失败：' + e.message + '，可点「生成拆解」重试');
+    applyVdLocal(v, '模型不可用（' + aiErr(e) + '），已切换本地模板');
   }
   vdBusy[v.id] = false; render();
+}
+function applyVdLocal(v, msg){
+  const d = localBreakdown(v);
+  const item = { ...v, status:'done', local:true, cat:d.cat, title:v.title,
+    author:v.author||'待确认', d:{ topic:d.topic, struct:d.struct, copy:d.copy, bgm:d.bgm, idea:d.idea } };
+  update({ ...S, videos: S.videos.map(x=>x.id===v.id?item:x) });
+  toast('🍊 ' + msg);
 }
 function parseVdLines(raw){
   const out = [];
@@ -3313,6 +3365,24 @@ const CLEAN_SEEDS = [
   { t:'全屋大扫除顺序错了，越擦越脏', a:'错误顺序/正确顺序双屏对照', w:'知识口播，收藏率高' },
   { t:'洗衣机 3 个月不洗，比马桶还脏？实测', a:'棉签取样 + 培养皿对比', w:'测评类，适合投流' },
 ];
+/* 由 Trae 内置模型预生成的家清选题（构建期写入，页面无需任何 Key） */
+const PRESET_CLEAN = {
+  model: 'TRAE 内置模型',
+  items: [
+    { t:'洗地机 vs 拖把，100 平实拍谁先干', w:'对比测评天然带争议，评论区会吵起来', a:'两台机器并排启动，左上角计时器' },
+    { t:'洗衣机胶圈黑泥，棉签一取样我沉默了', w:'视觉冲击强，家清常青爆款', a:'拆开胶圈怼近拍黑泥，配惊讶音效' },
+    { t:'锅底烧黑别硬蹭，泡 10 分钟自己化', w:'前后对比直接，转化意图明确', a:'焦黑锅底特写→倒水起泡' },
+    { t:'拖完地一股腥味，根因在拖把不在水', w:'反常识钩子，覆盖所有家庭', a:'把拖把怼镜头，甩出一滩黑水' },
+    { t:'小白鞋洗完发黄，差的是包纸这一步', w:'教程属性强，收藏率高', a:'两只鞋一白一黄并排对比' },
+    { t:'鞋柜一开门熏人，喷两下第二天没味', w:'场景真实，除臭喷雾直接种草', a:'开门瞬间捂鼻子，镜头扫过一排鞋' },
+    { t:'夏天脚汗重，睡前泡 10 分钟就不酸了', w:'季节性刚需，复购强', a:'温水泡脚特写，字幕「第 1 天」' },
+    { t:'浴室玻璃水垢，白醋不管用，它 30 秒化开', w:'对比直观，易出爆款', a:'半面玻璃对比，一喷一刮' },
+    { t:'宝宝满地爬，地板清洁真别只用清水', w:'母婴人群信任感强', a:'宝宝手掌擦地后放大看灰' },
+    { t:'宠物尿渍留味，紫外灯一照全现形', w:'养宠人群精准，痛点真', a:'关灯打紫外灯，尿渍发光' },
+    { t:'出租屋退租清洁，2 小时还原样板间', w:'剧情改造，涨粉快', a:'脏乱房间→干净房间同机位快剪' },
+    { t:'全屋大扫除顺序错了，越擦越脏', w:'知识口播，收藏率高', a:'错误顺序/正确顺序双屏对照' },
+  ]
+};
 function cleanPoolItems(day){
   const cp = S.cleanPool || {};
   return cp.date === (day || today()) ? (cp.items || []) : [];
@@ -3343,19 +3413,24 @@ async function buildCleanPool(force, silent){
         if (Array.isArray(arr)) ai = arr.filter(x => x && x.t).slice(0, 8).map(x => ({
           t: String(x.t).slice(0, 40), tag: x.tag === '热点' ? '热点' : '原创',
           w: String(x.w || '').slice(0, 40), a: String(x.a || '').slice(0, 40) }));
-      } catch(e){ if (!silent) toast('AI 选题生成失败：' + (e.message || e)); }
+      } catch(e){ if (!silent) toast('模型暂不可用（' + aiErr(e) + '），已用预生成选题'); }
     }
-    let items = [...ai.filter(x => x.tag === '热点'), ...hit, ...ai.filter(x => x.tag !== '热点')];
+    const base = ai.length ? ai : PRESET_CLEAN.items.map(s => ({ ...s, tag:'AI预生成' }));
+    let items = [...base.filter(x => x.tag === '热点'), ...hit, ...base.filter(x => x.tag !== '热点')];
     const rot = dayOfYear() % CLEAN_SEEDS.length;
     [...CLEAN_SEEDS.slice(rot), ...CLEAN_SEEDS.slice(0, rot)].forEach(s => {
       if (items.length >= 10) return;
       if (!items.some(x => x.t === s.t)) items.push({ t: s.t, tag:'行业选题', w: s.w, a: s.a });
     });
     items = items.slice(0, 10);
-    update({ ...S, cleanPool: { date: today(), ts: Date.now(), model: cfg.model || '', usedAI: ai.length > 0, items } });
-    if (!silent) toast(ai.length ? `🍊 ${cfg.model || 'AI'} 已生成 ${items.length} 条家清选题` : `已更新家清选题池（${items.length} 条，配置 AI Key 后自动用模型筛选）`);
+    update({ ...S, cleanPool: { date: today(), ts: Date.now(),
+      model: ai.length ? (cfg.model || '') : PRESET_CLEAN.model,
+      usedAI: ai.length > 0, preset: !ai.length, items } });
+    if (!silent) toast(ai.length
+      ? `🍊 ${cfg.model || 'AI'} 已生成 ${items.length} 条家清选题`
+      : `已更新家清选题池（${items.length} 条，Trae 预生成 + 本地内容，无需 Key）`);
   } catch(e) {
-    if (!silent) toast('选题池更新失败：' + (e.message || e));
+    if (!silent) toast('选题池更新失败：' + aiErr(e) + '，稍后重试即可');
   }
   cleanBusy = false; render();
   return true;
@@ -3369,20 +3444,30 @@ function vdFeedClean(i){
 
 function openVdCfg(){
   const c = S.vdCfg||{};
-  openModal('AI 设置（OpenAI 兼容格式）', `
-    <div class="field"><label>API 地址</label><input type="text" id="f-vd-api" value="${esc(c.apiUrl||'https://api.deepseek.com/v1/chat/completions')}" placeholder="https://api.deepseek.com/v1/chat/completions"></div>
-    <div class="field"><label>API Key（仅存于你的本地与私人云）</label><input type="password" id="f-vd-key" value="${esc(c.apiKey||'')}" placeholder="sk-…"></div>
-    <div class="field"><label>模型名称</label><input type="text" id="f-vd-model" value="${esc(c.model||'deepseek-chat')}" placeholder="deepseek-chat / glm-4-flash / moonshot-v1-8k 等"></div>
-    <div class="field"><label>我的抖音主页链接（所有卡片底部的跳转按钮会用它）</label><input type="url" id="f-vd-home" value="${esc(c.homeUrl||'')}" placeholder="https://www.douyin.com/user/你的ID"></div>
-    <div class="small muted">💡 兼容 OpenAI 格式的服务均可：DeepSeek / 智谱 GLM / Kimi / 豆包等。没有 Key 时也可以投喂，视频会先进入「待拆解」队列。</div>
-    <div class="small muted">🍊 此 Key 同时用于：家清选题池 / 视频拆解 / 招聘作战台每日推送 / 热点深度解读 / 面试实战对练（配置后每天自动生成）。</div>`, () => {
-    update({ ...S, vdCfg:{ apiUrl:document.getElementById('f-vd-api').value.trim(),
+  openModal('模型设置（可选，不填也能用）', `
+    <div class="card card-pad" style="background:linear-gradient(135deg,#FFF8EE,#fff);margin-bottom:12px">
+      <div style="font-size:13px;line-height:1.6">默认<b>零 Key 模式</b>已可用：家清选题池用 Trae 内置模型预生成，拆解走本地模板，不联网、不花钱。<br>只有想接自己的模型时才需要填下面的信息，留空即可。</div>
+    </div>
+    <div class="field"><label>API 地址（可选）</label><input type="text" id="f-vd-api" value="${esc(c.apiUrl||'https://api.deepseek.com/v1/chat/completions')}" placeholder="https://api.deepseek.com/v1/chat/completions"></div>
+    <div class="field"><label>API Key（可选，留空即用本地模式）</label><input type="password" id="f-vd-key" value="${esc(c.apiKey||'')}" placeholder="留空即可，不影响使用"></div>
+    <div class="field"><label>模型名称（可选）</label><input type="text" id="f-vd-model" value="${esc(c.model||'deepseek-chat')}" placeholder="deepseek-chat / glm-4-flash / moonshot-v1-8k 等"></div>
+    <div class="field"><label>我的抖音主页链接（可选）</label><input type="url" id="f-vd-home" value="${esc(c.homeUrl||'')}" placeholder="https://www.douyin.com/user/你的ID"></div>
+    <div class="small muted">💡 兼容 OpenAI 格式的服务均可：DeepSeek / 智谱 GLM / Kimi / 豆包等。</div>
+    <div class="small muted">🍊 填了 Key 后：家清选题池 / 视频拆解 / 招聘每日推送 / 热点解读 / 面试对练 会走模型；Key 失效或额度用尽时自动回退本地模式，并给出提示，不会报错崩溃。</div>
+    <div style="margin-top:8px"><button class="btn sm" onclick="clearVdCfg()">🧹 清除已保存的 Key（恢复零 Key 模式）</button></div>`, () => {
+    update({ ...S, _keyClearedAt:0, vdCfg:{ apiUrl:document.getElementById('f-vd-api').value.trim(),
       apiKey:document.getElementById('f-vd-key').value.trim(),
       model:document.getElementById('f-vd-model').value.trim()||'deepseek-chat',
       homeUrl:document.getElementById('f-vd-home').value.trim() } });
     closeModal(); toast('AI 设置已保存 🍊');
     buildCleanPool(true, false);
   });
+}
+function clearVdCfg(){
+  update({ ...S, _keyClearedAt: Date.now(), vdCfg:{ ...(S.vdCfg||{}), apiKey:'' } });
+  closeModal();
+  toast('已清除 Key，切回本地零 Key 模式');
+  buildCleanPool(true, true);
 }
 function vdPendingCard(v){
   const busy = vdBusy[v.id];
@@ -3392,7 +3477,7 @@ function vdPendingCard(v){
       ${v.url?`<span>🔗 ${esc(v.url.replace(/^https?:\/\//,'').slice(0,36))}…</span>`:''}<span>📅 ${esc(v.date)}</span>
     </div>
     <div class="vd-dims" style="opacity:.75">
-      <div class="vd-dim"><span class="vd-k">…</span><span class="vd-v muted">${busy?'🍊 AI 正在按 选题/结构/文案/BGM/思路 五个维度拆解，约需 10~30 秒…':'等待生成拆解。配置好 AI 设置后点「生成拆解」即可。'}</span></div>
+      <div class="vd-dim"><span class="vd-k">…</span><span class="vd-v muted">${busy?'🍊 AI 正在按 选题/结构/文案/BGM/思路 五个维度拆解，约需 10~30 秒…':'等待生成拆解。点「生成拆解」即可——没配 Key 时自动用本地模板，无需任何设置。'}</span></div>
     </div>
     <div class="vd-foot">
       <span class="small muted">${v.note?'📝 '+esc(v.note):''}</span>
@@ -3429,7 +3514,7 @@ PAGES['/videos'] = () => {
   const pool = cleanPoolItems(t);
   const cp = S.cleanPool || {};
   const poolMeta = pool.length
-    ? `${cp.usedAI ? 'AI · ' + esc(cp.model || '已配置模型') : '行业选题库'} · ${new Date(cp.ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})} 生成`
+    ? `${cp.usedAI ? 'AI · ' + esc(cp.model || '已配置模型') : (cp.preset ? 'Trae 预生成' : '行业选题库')} · ${new Date(cp.ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})} 更新`
     : '未生成';
   const poolHtml = `
     <div class="card card-pad" style="margin-bottom:12px;border-color:var(--primary-200)">
@@ -3449,12 +3534,12 @@ PAGES['/videos'] = () => {
           </div>
           <button class="btn sm" style="flex:none" onclick="vdFeedClean(${i})">拆解</button>
         </div>`).join('')
-      : `<div class="small muted" style="padding:8px 0 2px">今天还没有选题，点「更新」用「AI 设置」里配置的模型（${esc((S.vdCfg||{}).model||'未配置')}）生成家清选题。</div>`}
-      <div class="small muted" style="font-size:11.5px;margin-top:8px">💡 抓取与拆解共用同一个系统模型：先用它把全网热点筛成「家清能用的选题」，再按 选题/结构/文案/BGM/思路 五维拆解。</div>
+      : `<div class="small muted" style="padding:8px 0 2px">今天还没有选题，点「更新」即可生成（无需配置任何 Key，直接用内置预生成选题库）。</div>`}
+      <div class="small muted" style="font-size:11.5px;margin-top:8px">💡 默认零 Key：选题来自 Trae 内置模型预生成 + 行业库轮换，拆解走本地模板；想接自己的模型再在「AI 设置」里选填 Key。</div>
     </div>`;
   return `
     ${pageHead('phone','抖音热门视频拆解','每日拆解爆款 · 提供创作思路 · 可模仿复刻', `
-      <button class="btn sm" onclick="openVdCfg()">⚙ AI 设置</button>
+      <button class="btn sm" onclick="openVdCfg()">⚙ 模型设置</button>
       <button class="btn primary sm" onclick="openVdFeed()">＋ 投喂视频</button>
       <span class="chip pink" style="font-weight:700">📅 ${fmtD(t)}</span>`)}
     <div class="tabs" style="margin-bottom:12px">
@@ -4160,7 +4245,7 @@ PAGES['/automation'] = () => {
         <div class="feed-ico">${feedIcon(f.id,44)}</div>
         <div style="flex:1;min-width:0">
           <b style="font-size:14.5px">${esc(f.name)}</b>
-          <div class="small muted" style="margin:3px 0 7px">${esc(f.note)}</div>
+          <div class="small muted" style="margin:3px 0 7px">${esc(feedNote(f))}</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
             <span class="chip gray">⏱ ${f.run==='daily' ? '每天 '+f.time : '每'+(f.weekdays||[]).map(i=>WEEK_CN[i]).join('、')+' '+f.time}</span>
             ${f.enabled ? '<span class="chip green">生效中</span>' : '<span class="chip amber">已停用</span>'}
@@ -4173,7 +4258,7 @@ PAGES['/automation'] = () => {
         </div>
       </div>`;}).join('')}
     <div class="card card-pad small muted" style="margin-bottom:6px;background:linear-gradient(135deg,#FFF8EE,#fff)">
-      💡 「今日热点」抓取全网热榜后，会用「AI 设置」里配置的模型（${esc((S.vdCfg||{}).model||'未配置')}）筛出与家清相关的选题，写入「视频拆解 · 今日家清选题池」；拆解同样走这个模型。其余抓取源为公开 RSS 热榜/科技媒体，按频道关键词过滤后提炼要点写入知识库；抓取失败时自动注入「编内精选」知识（每日轮换）。请保持本页面打开（可安装为桌面 App），到点即自动执行。
+      💡 「今日热点」抓取全网热榜后，默认用 Trae 预生成的家清选题库补齐（零 Key）；在「模型设置」里填了 Key 的话，会改用它筛出与家清相关的选题并写入「视频拆解 · 今日家清选题池」，拆解也走同一模型。其余抓取源为公开 RSS 热榜/科技媒体，按频道关键词过滤后提炼要点写入知识库；抓取失败时自动注入「编内精选」知识（每日轮换）。请保持本页面打开（可安装为桌面 App），到点即自动执行。
     </div>
 
     <div class="sec-title" style="margin-top:20px">${kico('flag',18)} 我的例行流程 <span class="chip">手动登记，由 AI 定时任务执行</span></div>
@@ -4507,7 +4592,10 @@ async function aiChat(sys, user){
     body: JSON.stringify({ model: cfg.model||'deepseek-chat', temperature: 0.7,
       messages:[ { role:'system', content: sys }, { role:'user', content: user } ] })
   });
-  if (!res.ok) throw new Error('API 返回 ' + res.status);
+  if (!res.ok) {
+    const body = await res.text().catch(()=> '');
+    throw new Error('API 返回 ' + res.status + (body ? ' ' + body.replace(/\s+/g,' ').slice(0,120) : ''));
+  }
   const j = await res.json();
   const txt = ((j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '').replace(/```json|```/g, '').trim();
   if (!txt) throw new Error('AI 返回为空');
@@ -4524,7 +4612,7 @@ function aiFail(key, silent, label, e){
   render();
 }
 async function genLearnBatch(silent){
-  if (!aiReady()) { if (!silent) { openVdCfg(); toast('请先配置大模型 API Key'); } return false; }
+  if (!aiReady()) { if (!silent) toast('这个模块需要模型能力：未配置时可继续用手动内容，不影响其他功能'); return false; }
   if (kbBusy) return false;
   kbBusy = true; render();
   if (!silent) toast('✨ AI 正在生成今日作战台推送…（约 30~60 秒）');
@@ -4578,7 +4666,7 @@ async function genLearnBatch(silent){
   }
 }
 async function genHotBatch(silent){
-  if (!aiReady()) { if (!silent) { openVdCfg(); toast('请先配置大模型 API Key'); } return false; }
+  if (!aiReady()) { if (!silent) toast('这个模块需要模型能力：未配置时可继续用手动内容，不影响其他功能'); return false; }
   await ensureBoards(true, true);   /* 热榜是解读素材，先确保今日已抓 */
   const wb = ((S.boards||{}).boards||{}).weibo || [];
   if (!wb.length) { if (!silent) toast('❌ 今日热榜还没抓到，无法生成解读'); return false; }
