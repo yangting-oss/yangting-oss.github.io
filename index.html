@@ -491,6 +491,47 @@
   .reader-toolbar{position:sticky;top:0;z-index:5;background:rgba(255,247,251,.95);backdrop-filter:blur(8px);border-bottom:2px dashed var(--primary-200);padding:10px 14px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .font-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--primary-200);background:#fff;font-weight:800;color:var(--primary-deep);cursor:pointer}
   .quote-card{background:linear-gradient(135deg,#FFF8EE,#fff);border-left:4px solid var(--primary-300);border-radius:0 16px 16px 0;padding:12px 14px;font-style:italic;color:#7c4a63}
+  /* 读书小馆 · 今日书单 */
+  .read-hero{padding:18px 20px}
+  .read-hero .rh-head{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+  .read-hero .rh-head>div{flex:1;min-width:0}
+  .daily-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}
+  .daily-item{display:flex;align-items:center;gap:10px;min-width:0;padding:9px 11px;border-radius:15px;
+    text-decoration:none;color:var(--text);background:rgba(255,255,255,.9);
+    border:1.5px solid rgba(255,255,255,.95);transition:transform .16s,box-shadow .16s}
+  .daily-item:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(232,128,58,.18)}
+  .daily-item .dm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .daily-item .dm b{font-size:13.5px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .daily-item .dm span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .daily-item .dgo{flex:none;font-size:10.5px;font-weight:700;color:var(--primary-deep);
+    background:var(--primary-50);border-radius:99px;padding:4px 8px;display:none}
+  @media (min-width:641px){.daily-item .dgo{display:inline-block}}
+  @media (max-width:640px){.daily-list{grid-template-columns:1fr}}
+  /* 读书小馆 · 上次读到 */
+  .reading-now{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:14px 16px;margin-bottom:14px;
+    border-radius:20px;border:2px solid var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)}
+  .reading-now .rn-body{flex:1;min-width:170px}
+  .reading-now .rn-top{display:flex;align-items:center;gap:7px;min-width:0}
+  .reading-now .rn-top b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .reading-now .rn-sub{font-size:11.5px;color:var(--muted);margin:3px 0 6px}
+  .reading-now .progress{height:6px}
+  .reading-now .rn-btn{flex:none}
+  @media (max-width:560px){.reading-now .rn-btn{width:100%}}
+  /* 读书小馆 · 工具条 */
+  .read-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .read-tools .tabs{flex:1 1 auto;min-width:0}
+  .read-tools select{width:118px;flex:none}
+  @media (max-width:600px){
+    .read-tools{gap:8px}
+    .read-tools .tabs{width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+    .read-tools .tabs::-webkit-scrollbar{display:none}
+    .read-tools .tabs .tab{flex:none}
+    .read-tools select{width:100%;height:38px}
+    .book-card{padding:13px;gap:11px}
+    .book-card .book-cover{width:58px;height:78px;font-size:24px}
+    .book-card .book-cover .bname{display:none}
+    .book-meta b.t{font-size:14.5px}
+  }
 
   /* ============ 自动化/抓取任务 ============ */
   .feed-ico{width:42px;height:42px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--primary-100)}
@@ -511,7 +552,7 @@
   .mobile-top{display:none}
   @media (max-width:860px){
     .sidebar{display:none}
-    .main{margin-left:0;padding:70px 14px 90px}
+    .main{margin-left:0;padding:70px 14px 116px}
     .mobile-top{
       display:flex;position:fixed;top:0;left:0;right:0;z-index:70;align-items:center;gap:10px;
       background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:2px dashed var(--primary-200);
@@ -3875,38 +3916,39 @@ PAGES['/reading'] = () => {
   return `
     ${pageHead('reading','读书小馆','每日书单 · 在线阅读 · 名句摘录 · 读书笔记', `
       <button class="btn primary sm" onclick="openNoteModal()">＋ 写笔记</button>`)}
-    ${lastRead ? `<div class="card card-pad" style="margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)">
+    ${lastRead ? `<div class="reading-now">
       <span class="book-cover ${lastRead.book.cover}" style="width:40px;height:54px;font-size:18px">${lastRead.book.em}</span>
-      <div style="flex:1;min-width:200px">
-        <b class="small">上次读到 《${esc(lastRead.book.title)}》</b>
-        <div class="small muted" style="margin-top:3px">第 ${Math.max(1, lastRead.v.lastCh||1)} 章 · 全书进度 ${lastRead.v.progress||0}%</div>
+      <div class="rn-body">
+        <div class="rn-top"><span class="chip green">在读</span><b>《${esc(lastRead.book.title)}》</b></div>
+        <div class="rn-sub">第 ${Math.max(1, lastRead.v.lastCh||1)} / ${lastRead.book.chapters.length} 章 · 全书进度 ${lastRead.v.progress||0}%</div>
+        <div class="progress"><div style="width:${Math.min(100, lastRead.v.progress||0)}%"></div></div>
       </div>
-      <button class="btn primary sm" onclick="location.hash='#/read/${lastRead.book.id}?ch=${Math.max(0,(lastRead.v.lastCh||1)-1)}'">${kico('bookopen',14)} 继续阅读</button>
+      <button class="btn primary sm rn-btn" onclick="location.hash='#/read/${lastRead.book.id}?ch=${Math.max(0,(lastRead.v.lastCh||1)-1)}'">${kico('bookopen',14)} 继续阅读</button>
     </div>` : ''}
-    <div class="hero" style="padding:18px 22px">
-      <div class="hero-row" style="gap:14px">
-        <div style="line-height:1;display:flex;align-items:center">${kico('reading',38)}</div>
-        <div style="flex:1">
+    <div class="hero read-hero">
+      <div class="rh-head">
+        <div style="line-height:1;display:flex;align-items:center;flex:none">${kico('reading',34)}</div>
+        <div>
           <div class="hero-date">${kico('bookopen',14)} 今日书单 · 值得翻开的 3 本</div>
-          <div class="small" style="color:#A67B50;margin-top:4px">每天为你轮换推荐，点封面即可在线阅读</div>
-          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-            ${daily.map(b => `<a class="card" style="display:flex;align-items:center;gap:9px;padding:8px 13px;text-decoration:none;color:var(--text)" href="#/book/${b.id}">
-              <span class="book-cover ${b.cover}" style="width:34px;height:46px;font-size:15px;cursor:pointer;box-shadow:none">${b.em}</span>
-              <span><b class="small">${esc(b.title)}</b><div class="small muted">${esc(b.author)}</div></span>
-            </a>`).join('')}
-          </div>
+          <div class="small" style="color:#A67B50;margin-top:3px">每天为你轮换推荐，点任意一本直接开始试读</div>
         </div>
+      </div>
+      <div class="daily-list">
+        ${daily.map(b => `<a class="daily-item" href="#/read/${b.id}">
+          <span class="book-cover ${b.cover}" style="width:36px;height:49px;font-size:15px;box-shadow:none">${b.em}</span>
+          <span class="dm"><b>${esc(b.title)}</b><span>${esc(b.author)} · ${esc(b.cat)} · ${b.chapters.length} 章</span></span>
+          <span class="dgo">${kico('bookopen',11)} 试读</span>
+        </a>`).join('')}
       </div>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+    <div class="read-tools">
       <div class="tabs">
         <button class="tab ${readTab==='daily'?'active':''}" onclick="readTab='daily';render()">${kico('folder',14)} 书库</button>
         <button class="tab ${readTab==='shelf'?'active':''}" onclick="readTab='shelf';render()">${kico('reading',14)} 我的书架 ${shelfBooks.length?`<span style="font-size:10px">(${shelfBooks.length})</span>`:''}</button>
         <button class="tab ${readTab==='notes'?'active':''}" onclick="readTab='notes';render()">${kico('thought',14)} 笔记本 ${notes.length?`<span style="font-size:10px">(${notes.length})</span>`:''}</button>
       </div>
-      ${readTab==='daily' ? `<select style="width:120px" onchange="bookCat=this.value;render()">${cats.map(c => `<option ${c===bookCat?'selected':''}>${esc(c)}</option>`).join('')}</select>` : ''}
-      ${readTab!=='daily' ? '<div></div>' : ''}
+      ${readTab==='daily' ? `<select onchange="bookCat=this.value;render()">${cats.map(c => `<option ${c===bookCat?'selected':''}>${esc(c)}</option>`).join('')}</select>` : ''}
     </div>
 
     ${readTab==='daily' ? `
