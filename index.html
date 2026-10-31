@@ -1815,7 +1815,6 @@ PAGES['/'] = () => {
             ${r.repeat!=='daily'?'<span class="chip gray">'+(r.repeat==='weekday'?'工作日':'自定义')+'</span>':''}
           </div>`).join('')
         : `<div class="muted small" style="padding:8px 0">还没有提醒～<a href="#/reminders" style="color:var(--primary-deep);font-weight:600;text-decoration:none">去建一条</a>，到点准时叫你 ${EMO()}</div>`}
-        <div style="margin-top:10px;text-align:right"><a class="btn sm" href="#/reminders" style="text-decoration:none">管理提醒 →</a></div>
       </div>
     </div>
 
