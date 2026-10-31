@@ -105,10 +105,6 @@
   .chip.amber{background:#fff3bf;color:#e67700}
   .chip.gray{background:#FFF5EB;color:var(--muted)}
   .chip.blue{background:#e7f5ff;color:#1971c2}
-  .cr-table{width:100%;border-collapse:collapse;margin-top:6px}
-  .cr-table th{background:#FFE4B5;color:#B55A1F;font-size:12px;padding:8px 10px;border:1px solid #FFD9A0;text-align:left;white-space:nowrap}
-  .cr-table td{border:1px solid #FFEDD5;padding:8px 10px;font-size:13px;vertical-align:top;line-height:1.6}
-  .cr-table td:first-child{white-space:nowrap;font-weight:600;color:#B55A1F}
 
   .switch{position:relative;width:38px;height:22px;flex:none;display:inline-block}
   .switch input{opacity:0;width:0;height:0}
@@ -367,17 +363,6 @@
   .habit.on .hk::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
   .tip-quote{font-size:16px;font-weight:700;color:var(--primary-deep);line-height:1.75}
   @media (max-width:720px){ .day-pill{min-width:44px} .habit-grid{grid-template-columns:repeat(2,1fr)} }
-
-  /* 视频拆解 */
-  .vd-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .vd-title{font-weight:700;font-size:15px;flex:1;min-width:0}
-  .vd-meta{display:flex;gap:10px;color:var(--muted);font-size:12px;margin:3px 0 10px;flex-wrap:wrap}
-  .vd-dims{display:flex;flex-direction:column;gap:7px;background:linear-gradient(135deg,#FFF5EB,#fff 60%);border:2px dashed var(--primary-100);border-radius:14px;padding:10px 12px}
-  .vd-dim{display:flex;gap:8px;align-items:flex-start}
-  .vd-k{flex:none;width:42px;text-align:center;font-size:11.5px;font-weight:700;color:var(--primary-deep);background:var(--primary-100);border-radius:8px;padding:2px 0;margin-top:2px}
-  .vd-v{flex:1;font-size:12.8px;line-height:1.65}
-  .vd-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap}
-  .vd-date-chip{font-size:12px;font-weight:700;color:var(--primary-deep)}
 
   /* 横幅星星散点闪烁 */
   .hero-star{
@@ -820,14 +805,11 @@ const SYNC_DEBOUNCE = 2000, SYNC_INTERVAL = 300000;
 /* group=侧边栏分组；badge=图标右下角的功能小徽章（emoji） */
 const NAV = [
   { path:'/',          label:'今日概览', icon:'home',        badge:'🏠',  group:'今日' },
-  { path:'/todo',      label:'今日计划', icon:'todo',        badge:'📅',  group:'实践' },
-  { path:'/work',      label:'工作计划', icon:'work',        badge:'🗂️', group:'实践' },
-  { path:'/gongzhong', label:'公众号',   icon:'gongzhong',   badge:'📰',  group:'实践' },
-  { path:'/videos',    label:'视频拆解', icon:'phone',       badge:'🎬',  group:'实践' },
-  { path:'/knowledge', label:'每日学习', icon:'knowledge',   badge:'📚',  group:'输入' },
+  { path:'/todo',      label:'今日任务', icon:'todo',        badge:'📅',  group:'今日' },
+  { path:'/knowledge', label:'招聘作战台', icon:'knowledge', badge:'📚',  group:'输入' },
   { path:'/reading',   label:'读书小馆', icon:'reading',     badge:'📖',  group:'输入', isNew:true },
   { path:'/vault',     label:'知识库',   icon:'vault',       badge:'🗄️', group:'输入', isNew:true },
-  { path:'/hotspot',   label:'热点',     icon:'hot',         badge:'🔥',  group:'输入' },
+  { path:'/hotspot',   label:'热点情报', icon:'hot',         badge:'🔥',  group:'输入' },
   { path:'/bills',     label:'每日记账', icon:'bills',       badge:'💰',  group:'检验' },
   { path:'/review',    label:'每周复盘', icon:'review',      badge:'📊',  group:'检验' },
   { path:'/diet',      label:'饮食打卡', icon:'diet',        badge:'🍽️', group:'生活' },
@@ -1060,7 +1042,7 @@ const DEFAULT_FEEDS = [
     note:'每天 8:00 关注人社 / 社保 / 就业创业等政策变更，做要点提炼' },
   { id:'hot',    name:'今日热点', emoji:'🔥', icon:'hot', run:'daily',   time:'07:30', weekdays:[],
     kw:[], enabled:true,
-    note:'每天 7:30 抓取全网热点：未配置 Key 时用 Trae 预生成的家清选题库补齐，配置后自动用模型筛选并写入「视频拆解 · 家清选题池」' },
+    note:'每天 7:30 抓取全网热点进入「热点情报」（公众号 / 微博 / 抖音等可索引渠道），未配置 Key 时用内置预生成内容兜底' },
   { id:'tech',   name:'科技前沿', emoji:'🚀', icon:'tech', run:'weekly',  time:'09:00', weekdays:[1,4],
     kw:['AI','科技','大模型','智能','互联网','数字','芯片','机器人'], enabled:true,
     note:'每周一 / 四 9:00 抓取科技趋势内容' },
@@ -1144,8 +1126,7 @@ function emptyState(){
     bills:[], diet:[], todos:[], events:[], workouts:[], knowledge:[], hotspots:[], kbInsights:[],
     kb:[], automations:[], reminders:[], notes:[], plans:[], healthChecks:{},
     gz:[], reviews:[],
-    videos:[], creatives:[], vdCfg:{ apiUrl:'https://api.deepseek.com/v1/chat/completions', apiKey:'', model:'deepseek-chat', homeUrl:'' },
-    cleanPool:{},
+    vdCfg:{ apiUrl:'https://api.deepseek.com/v1/chat/completions', apiKey:'', model:'deepseek-chat', homeUrl:'' },
     feeds: JSON.parse(JSON.stringify(DEFAULT_FEEDS)),
     shelf:{}, jobs:{},
     settings:{ push_time:'08:30', cloud:true, feeds:true },
@@ -1240,8 +1221,6 @@ function mergeStates(a, b){
     reminders: (()=>{ const u = uni(a.reminders, b.reminders); const seen = new Set(); return u.filter(r => { const k = (r.time||'')+'|'+(r.text||'')+'|'+(r.repeat||'')+'|'+((r.weekdays||[]).join(',')); if(seen.has(k)) return false; seen.add(k); return true; }); })(), notes: uni(a.notes, b.notes),
     plans: uni(a.plans, b.plans),
     gz: (b.gz && b.gz.length) ? b.gz : uni(a.gz, b.gz), reviews: uni(a.reviews, b.reviews),
-    videos: uni(a.videos||[], b.videos||[]),
-    creatives: uni(a.creatives||[], b.creatives||[]),
     kbInsights: (()=>{ const u = uni(a.kbInsights||[], b.kbInsights||[]); const norm = s => String(s||'').replace(/[\s\p{P}]+/gu,'').toLowerCase(); const seen = new Set(); return u.filter(x=>{ const k = (x.module_type||'')+'|'+norm(x.title); if(seen.has(k)) return false; seen.add(k); return true; }); })(),
     vdCfg: ((a._keyClearedAt||0) > (b._syncedAt||0)) ? (a.vdCfg||{}) :
            ((a._localSavedAt||0) >= (b._localSavedAt||0) ? (a.vdCfg||{}) : (b.vdCfg||{})),
@@ -1253,7 +1232,6 @@ function mergeStates(a, b){
     boardsHist: Object.entries({ ...(a.boardsHist||{}), ...(b.boardsHist||{}) })
       .sort().slice(-7).reduce((o,[k,v])=>{ o[k]=v; return o; }, {}),
     dailyNews: ((b.dailyNews||{}).ts||0) >= ((a.dailyNews||{}).ts||0) ? (b.dailyNews||{}) : (a.dailyNews||{}),
-    cleanPool: ((b.cleanPool||{}).ts||0) >= ((a.cleanPool||{}).ts||0) ? (b.cleanPool||{}) : (a.cleanPool||{}),
     newsErr:   ((b.newsErr||{}).ts||0) >= ((a.newsErr||{}).ts||0) ? (b.newsErr||{}) : (a.newsErr||{}),
     boardErr:  ((b.boardErr||{}).ts||0) >= ((a.boardErr||{}).ts||0) ? (b.boardErr||{}) : (a.boardErr||{}),
     _syncedAt: Math.max(a._syncedAt||0, b._syncedAt||0),
@@ -1610,10 +1588,10 @@ function toggleTheme(){
 /* ---------- 冷数据归档（主库内 gzip 压缩）：超上限的旧内容压进 _cold_gz 字段，dt() 读取时解压合并 ---------- */
 /* 双向强制上限：浏览器端 syncNow 与 7:30 任务端都会执行「热区截断 → 溢出并入 _cold_gz」，
    保证云端记录永远 <96KB（jsonbin 免费版上限 100KB），且历史内容不丢失、前端照常显示 */
-const COLD_COLL = ['videos','creatives','kbInsights','workouts','hotspots','kb'];
-const COLD_CAPS = { videos:8, creatives:24, kbInsights:14, workouts:30, hotspots:8, kb:10 };
+const COLD_COLL = ['kbInsights','workouts','hotspots','kb'];
+const COLD_CAPS = { kbInsights:14, workouts:30, hotspots:8, kb:10 };
 const coldOK = typeof CompressionStream === 'function' && typeof DecompressionStream === 'function';
-let S_ARCH = { videos:[], creatives:[], kbInsights:[], workouts:[], hotspots:[], kb:[] };
+let S_ARCH = { kbInsights:[], workouts:[], hotspots:[], kb:[] };
 let archLoaded = false, lastColdGz = '';
 const _coldKey = x => x && x.id;
 const _coldSort = (a,b) => String(b.created_at||b.date||b.added_at||b.record_date||'').localeCompare(String(a.created_at||a.date||a.added_at||a.record_date||''));
@@ -1746,6 +1724,12 @@ PAGES['/'] = () => {
   const progress = st.todo_total > 0 ? Math.round(st.todo_done / st.todo_total * 100) : 0;
   const evs = eventsOf(today()).slice(0,3);
   const undone = todosOf(today()).filter(x => !x.is_completed).slice(0,3);
+  const todayPlan = (() => {
+    const start = weekStartOf(today());
+    const dayN = ((d.getDay()+6)%7)+1;
+    return dt('plans').filter(p => p.week === start && p.day === dayN);
+  })();
+  const todayPlanDone = todayPlan.filter(p => p.status === 'done').length;
   const kbToday = dt('kb').filter(x => x.date === today() && x.auto);
   const wt = waterState();
   const quick = NAV.filter(n => n.path !== '/' && n.path !== '/settings');
@@ -1801,10 +1785,26 @@ PAGES['/'] = () => {
         : `<div class="muted small" style="padding:8px 0">还没有提醒～<a href="#/reminders" style="color:var(--primary-deep);font-weight:600;text-decoration:none">去建一条</a>，到点准时叫你 ${EMO()}</div>`}
       </div>
       <div class="card card-pad">
-        <div class="sec-title" style="margin-bottom:6px">${kico('todo',18)} 今日速览 <a class="small" style="color:var(--primary-deep);font-weight:600;margin-left:auto;text-decoration:none" href="#/todo">全部 →</a></div>
-        ${progress ? `<div class="small muted" style="margin-bottom:6px">完成进度 ${progress}%</div><div class="progress" style="margin-bottom:10px"><div style="width:${progress}%"></div></div>` : ''}
-        ${evs.length ? evs.map(e => `<div class="row"><span class="chip">${esc(e.start_time||'')}</span><span class="grow small">${esc(e.title)}</span></div>`).join('') : ''}
-        ${undone.length ? undone.map(x => `<div class="row"><span>${kico('bell',16)}</span><span class="grow small ${x.priority==='high'?'':'muted'}">${esc(x.title)}</span></div>`).join('') : (evs.length?'':'<div class="muted small" style="padding:8px 0">今天没有安排，享受自由的一天吧 '+EMO()+'</div>')}
+        <div class="sec-title" style="margin-bottom:6px">${kico('todo',18)} 今日待办与任务 <a class="small" style="color:var(--primary-deep);font-weight:600;margin-left:auto;text-decoration:none" href="#/todo">全部 →</a></div>
+        <div class="small muted" style="margin-bottom:8px">待办 ${st.todo_done}/${st.todo_total} 完成${todayPlan.length?` · 今日任务 ${todayPlanDone}/${todayPlan.length}`:''}</div>
+        <div class="progress" style="margin-bottom:10px"><div style="width:${progress}%"></div></div>
+        ${undone.length ? undone.map(x => `
+          <div class="row">
+            <input type="checkbox" style="width:17px;height:17px;accent-color:var(--primary)" onchange="toggleTodo('${x.id}')">
+            <span class="grow t small ${x.priority==='high'?'':'muted'}">${esc(x.title)}</span>
+            ${x.priority==='high'?'<span class="chip pink">高</span>':''}
+          </div>`).join('') : '<div class="muted small" style="padding:2px 0 4px">今天的待办都清空啦 '+EMO()+'</div>'}
+        ${todayPlan.length ? `
+          <div class="small" style="margin:10px 0 4px;font-weight:600;color:var(--primary-deep)">${kico('work',14)} 今日工作计划</div>
+          ${todayPlan.map(p => `
+            <div class="row ${p.status==='done'?'done':''}" style="cursor:pointer" onclick="cyclePlan('${p.id}')">
+              <span style="width:16px;text-align:center">${p.status==='done'?'✅':p.status==='doing'?'🔄':'⬜'}</span>
+              <span class="grow t small">${esc(p.title)}</span>
+              ${p.project?`<span class="chip gray">${esc(p.project)}</span>`:''}
+            </div>`).join('')}` : ''}
+        ${evs.length ? `<div class="small" style="margin:10px 0 4px;font-weight:600;color:var(--primary-deep)">${kico('cal',14)} 今日行程</div>
+          ${evs.map(e => `<div class="row"><span class="chip">${esc(e.start_time||'')}</span><span class="grow small">${esc(e.title)}</span></div>`).join('')}` : ''}
+        ${(!undone.length && !todayPlan.length && !evs.length) ? '<div class="muted small" style="padding:2px 0">今天没有安排，享受自由的一天吧 '+EMO()+'</div>' : ''}
       </div>
     </div>
 
@@ -1846,13 +1846,14 @@ PAGES['/todo'] = () => {
   const list = all.filter(x => todoTab === 'all' || x.priority === todoTab);
   const evs = eventsOf(t);
   return `
-    ${pageHead('todo','今日计划','待办清单与今日行程',`<span class="chip gray">${t} · 完成 ${done}/${all.length}</span>`)}
+    ${pageHead('todo','今日任务','今日待办 · 今日行程 · 本周工作计划',`<span class="chip gray">${t} · 待办完成 ${done}/${all.length}</span>`)}
+    <div class="sec-title">${kico('check',18)} 今日待办 <span class="chip gray" style="margin-left:4px">${all.length} 项</span></div>
     <div class="card card-pad" style="margin-bottom:14px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
         <div class="tabs">${tabs.map(x => `<button class="tab ${todoTab===x.key?'active':''}" onclick="todoTab='${x.key}';render()">${x.label}</button>`).join('')}</div>
         <button class="btn primary sm" onclick="openTodoModal()">＋ 添加</button>
       </div>
-      <div>${list.length ? '' : `<div class="muted small" style="padding:14px 0;text-align:center">${todoTab==='all'?'今天还没有任务，点「＋ 添加」开始吧 🍊':'这一优先级暂时没有待办～'}</div>`}
+      <div>${list.length ? '' : `<div class="muted small" style="padding:14px 0;text-align:center">${todoTab==='all'?'今天还没有待办，点「＋ 添加」开始吧 🍊':'这一优先级暂时没有待办～'}</div>`}
         ${list.map(x => `
           <div class="row ${x.is_completed?'done':''}">
             <input type="checkbox" style="width:17px;height:17px;accent-color:var(--primary)" ${x.is_completed?'checked':''} onchange="toggleTodo('${x.id}')">
@@ -1873,7 +1874,8 @@ PAGES['/todo'] = () => {
         </div>`).join('')
         : '<div class="muted small" style="padding:10px 0">今天没有安排行程，点「＋ 添加行程」安排一件吧</div>'}
       <div style="margin-top:10px;text-align:right"><button class="btn sm" onclick="openEventModal()">＋ 添加行程</button></div>
-    </div>`;
+    </div>
+    ${workPlanSection()}`;
 };
 function toggleTodo(id){
   update({ ...S, todos: S.todos.map(x => x.id === id ? { ...x, is_completed: !x.is_completed } : x) });
@@ -1918,7 +1920,8 @@ function openEventModal(){
 
 /* ---------- 热点 ---------- */
 let insHotTab = 'today', hotBoardTab = 'news';
-PAGES['/hotspot'] = () => {
+let duTab = 'hot';   /* 热点情报：hot=热点解读 / gz=公众号清单 */
+function hotView(){
   const t = today();
   /* AI 深度解读（厦门政策 × 电商行业） */
   const ins = dt('kbInsights');
@@ -1957,16 +1960,20 @@ PAGES['/hotspot'] = () => {
       : `<div class="small muted" style="padding:10px 0 4px">${(S.boardErr&&S.boardErr.date===t)?'今日精选新闻抓取失败，点「更新」重试；抓取失败不会写入任何内容。':'还没有精选新闻，点「更新」立即抓取。'}</div>`}
     </div>`;
   return `
-    ${pageHead('hot','今日热点','全网热榜每日抓取 · 厦门 × 电商解读', `
+    ${pageHead('hot','热点情报','全网热榜每日抓取 · 厦门 × 电商解读', `
       <button class="btn sm ${aiReady()?'primary':''}" onclick="${aiReady()?'genHotBatch(false)':'openVdCfg()'}">${kbBusy?'⏳ AI 解读中…':(aiReady()?'✨ AI 深度解读':'⚙ 配置 AI 解读')}</button>
       <button class="btn primary sm" onclick="openHotspotModal()">＋ 收藏热点</button>`)}
+    <div class="tabs" style="margin-bottom:12px">
+      <button class="tab ${duTab==='hot'?'active':''}" onclick="duTab='hot';render()">${kico('hot',14)} 热点解读</button>
+      <button class="tab ${duTab==='gz'?'active':''}" onclick="duTab='gz';render()">${kico('gongzhong',14)} 公众号清单</button>
+    </div>
     ${boardHtml}
     <div class="tabs" style="margin-bottom:12px">
       <button class="tab ${insHotTab==='today'?'active':''}" onclick="insHotTab='today';render()">📍 今日解读</button>
       <button class="tab ${insHotTab==='hist'?'active':''}" onclick="insHotTab='hist';render()">🗂 历史热点 ${histDates.length?`<span style="font-size:10px">(${histDates.length}天)</span>`:''}</button>
     </div>
     ${insHotTab==='today' ? `
-      ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例解读（不会每日变化）。${aiReady()?'点右上「✨ AI 深度解读」，AI 会基于今日真实热榜生成「影响与对策」，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，AI 会基于今日真实热榜生成解读，并每天 7:30 自动更新。'}</span></div>`:''}
+      ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例解读（不会每日变化）。${aiReady()?'点右上「✨ AI 深度解读」，AI 会基于今日真实热榜生成「影响与对策」，之后每天 7:30 自动更新。':'在「⚙ 配置 AI 解读」中填好模型后，AI 会基于今日真实热榜生成解读，并每天 7:30 自动更新。'}</span></div>`:''}
       ${todayList.length ? todayList.map(kbHotCard).join('') : kbEmpty('hot','今日解读还没有内容','上方「全网热榜」每天自动抓取真实热搜；配置 AI 后点右上「✨ AI 深度解读」即可生成「影响与对策」')}
       ${manualHot.length ? `
         <div class="sec-title" style="margin:18px 0 10px">📌 我收藏的热点</div>
@@ -1981,10 +1988,10 @@ PAGES['/hotspot'] = () => {
             ${x.url?`<a class="small" style="color:var(--primary-deep)" href="${esc(x.url)}" target="_blank" rel="noopener">🔗 查看原文</a>`:''}
           </div>`).join('')}` : ''}
     ` : (histDates.length ? histDates.map(d=>`
-          <div class="sec-title" style="margin:4px 0 10px">${kico('cal',18)} <span class="vd-date-chip">${fmtDateCN(d)}</span> <span class="chip gray" style="margin-left:4px">${histOf(d).length} 条</span></div>
+          <div class="sec-title" style="margin:4px 0 10px">${kico('cal',18)} <span style="font-weight:700;color:var(--primary-deep)">${fmtDateCN(d)}</span> <span class="chip gray" style="margin-left:4px">${histOf(d).length} 条</span></div>
           ${histOf(d).map(kbHotCard).join('')}`).join('')
         : kbEmpty('cal','还没有历史热点','每天的解读会自动归档到这里，点击可回看过往政策'))}`;
-};
+}
 function openHotspotModal(){
   openModal('收藏热点', `
     <div class="field"><label>标题</label><input type="text" id="f-hs-title"></div>
@@ -2138,7 +2145,7 @@ function kbCopyLearn(id){
   const x = kbFind(id); if (!x) return;
   const blocks = (x.blocks||[]).map(b=>`【${b.heading}】\n${b.body}`).join('\n\n');
   const qs = (x.interview_qs||[]).map((qa,i)=>`\n面试题${i+1}：${qa.q}\n听点：${qa.listen_for||''}\n${(qa.rubric||[]).map(r=>'  '+r).join('\n')}`).join('\n');
-  copyText(`【${x.dimension?x.dimension+' · ':''}${x.dimension_name||x.category||'每日学习'}】${x.title}\n\n${blocks}${x.drill?`\n\n🎯 今日面试动作：${x.drill}`:''}${qs}\n\n✅ 本周落地：${x.action||'—'}\n来源：${x.source||'—'}`, '学习内容已复制 🍊');
+  copyText(`【${x.dimension?x.dimension+' · ':''}${x.dimension_name||x.category||'招聘作战台'}】${x.title}\n\n${blocks}${x.drill?`\n\n🎯 今日面试动作：${x.drill}`:''}${qs}\n\n✅ 本周落地：${x.action||'—'}\n来源：${x.source||'—'}`, '学习内容已复制 🍊');
 }
 function kbCopyQs(id){
   const x = kbFind(id); if (!x) return;
@@ -2179,7 +2186,7 @@ function kbLearnCard(x){
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       ${x.interview_dimension?`<span class="chip blue" style="font-weight:800">Q${x.interview_dimension}</span>`:''}
       ${dim?`<span class="chip ${dimCls[dim]||'gray'}" style="font-weight:800">${dim}</span>`:''}
-      <span class="chip pink">${esc(x.category||x.dimension_name||'每日学习')}</span>
+      <span class="chip pink">${esc(x.category||x.dimension_name||'招聘作战台')}</span>
       ${x.job_role?`<span class="chip" style="background:#fff4e6;color:#d9480f;border:1px solid #ffd8a8">▣ ${esc(x.job_role)}</span>`:''}
       ${x.recruitment_stage?`<span class="chip" style="background:#e7f5ff;color:#1971c2;border:1px solid #a5d8ff">◇ ${esc(x.recruitment_stage)}</span>`:''}
       ${x.biz_track?`<span class="chip gray">${esc(x.biz_track)}轨</span>`:''}
@@ -2241,7 +2248,7 @@ function kbEmpty(em, title, desc){
   return `<div class="card wip"><div class="em">${kico(em,36)}</div><b>${esc(title)}</b><p>${esc(desc)}</p></div>`;
 }
 
-/* ---------- 每日学习 · 招聘作战台（作战台 / 全岗位库 / 招聘全流程 三标签） ---------- */
+/* ---------- 招聘作战台（作战台 / 全岗位库 / 招聘全流程 / 竞对地图） ---------- */
 let kbTab = 'desk';
 PAGES['/knowledge'] = () => {
   const t = today();
@@ -2269,7 +2276,7 @@ PAGES['/knowledge'] = () => {
     <button class="tab ${kbTab==='flow'?'active':''}" onclick="kbTab='flow';render()">🧭 招聘全流程</button>
     <button class="tab ${kbTab==='comp'?'active':''}" onclick="kbTab='comp';render()">🏢 竞对地图</button>
   </div>`;
-  const head = pageHead('knowledge','每日学习','全岗位 × 全流程作战 · 每日资讯自动更新', `
+  const head = pageHead('knowledge','招聘作战台','全岗位 × 全流程作战 · 每日推送自动更新', `
       <button class="btn primary sm" onclick="openMockRecruit()">🎭 模拟招聘</button>
       <button class="btn sm" onclick="openKnowledgeModal()">＋ 记录知识点</button>`);
   if (kbTab==='roles') return `${head}${tabsBar}${kbRenderRoles(learnAll)}`;
@@ -2279,7 +2286,7 @@ PAGES['/knowledge'] = () => {
     <div class="sec-title">${kico('robot',18)} 🎯 招聘作战台 · 今日推送${focusTag} ${!usingKbDemo && insLatest && insLatest!==t ? `<span class="chip gray" style="margin-left:6px">${fmtDateCN(insLatest)} 生成</span>` : ''}
       <button class="btn sm ${aiReady()?'primary':''}" style="margin-left:auto" onclick="${aiReady()?'genLearnBatch(false)':'openVdCfg()'}">${kbBusy?'⏳ AI 生成中…':(aiReady()?'✨ AI 生成今日推送':'⚙ 配置 AI 后可自动生成')}</button>
     </div>
-    ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例推送（不会每日变化）。${aiReady()?'点上方「✨ AI 生成今日推送」立即生成今日真实内容，之后每天 7:30 自动更新。':'在「视频拆解 → ⚙ AI 设置」配置 API Key 后，即可一键生成，并每天 7:30 自动更新。'}资讯类每日更新另见下方「每天 60 秒读懂世界」。</span></div>`:''}
+    ${usingKbDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">${EMO()} 以下为静态示例推送（不会每日变化）。${aiReady()?'点上方「✨ AI 生成今日推送」立即生成今日真实内容，之后每天 7:30 自动更新。':'在「⚙ 配置 AI」中填好模型后，即可一键生成，并每天 7:30 自动更新。'}资讯类每日更新另见下方「每天 60 秒读懂世界」。</span></div>`:''}
     ${cards.length ? cards.map(kbLearnCard).join('') : kbEmpty('robot','作战台推送还没有内容','真实每日更新见下方「每天 60 秒读懂世界」；自己的积累用右上角「记录知识点」沉淀')}
     ${book.length ? book.map(kbBookCard).join('') : ''}
     ${(() => {
@@ -2943,7 +2950,7 @@ function openPlanModal(){
   });
   document.getElementById('f-plan-title').focus();
 }
-PAGES['/work'] = () => {
+function workPlanSection(){
   const { start, days, plans } = workPageData();
   const doneN = plans.filter(p=>p.status==='done').length;
   const pct = plans.length ? Math.round(doneN/plans.length*100) : 0;
@@ -2955,17 +2962,18 @@ PAGES['/work'] = () => {
   const lastStart = addDays(start, -7);
   const lastDone = dt('plans').filter(p=>p.week===lastStart && p.status==='done');
   return `
-    ${pageHead('work','工作计划','每周任务安排与执行追踪', `
-      <button class="btn sm" onclick="workWeek--;render()">‹ 上一周</button>
-      <button class="btn sm ${isThisWeek?'primary':''}" onclick="workWeek=0;render()">${isThisWeek?'本周':'回到本周'}</button>
-      <button class="btn sm" onclick="workWeek++;render()">下一周 ›</button>
-      <button class="btn primary sm" onclick="openPlanModal()">＋ 添加任务</button>`)}
+    <div class="sec-title" style="margin-top:20px">${kico('work',18)} 工作计划 <span class="chip gray" style="margin-left:4px">完成 ${doneN}/${plans.length}</span><span class="small muted" style="font-weight:400;margin-left:auto">点任务切换：待开始 → 进行中 → 已完成</span></div>
     <div class="card card-pad" style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
-        <div class="sec-title" style="margin:0">${kico('cal',18)} ${fmtMD(start)} – ${fmtMD(days[6])} <span class="chip pink" style="margin-left:4px">完成 ${doneN}/${plans.length}</span></div>
-        <span class="small muted">点击任务切换：待开始 → 进行中 → 已完成</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="sec-title" style="margin:0">${kico('cal',18)} ${fmtMD(start)} – ${fmtMD(days[6])} <span class="chip gray" style="margin-left:4px">${isThisWeek?'本周':(workWeek>0?'后 ':'前 ')+Math.abs(workWeek)+' 周'}</span></div>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm" onclick="workWeek--;render()">‹ 上一周</button>
+          <button class="btn sm ${isThisWeek?'primary':''}" onclick="workWeek=0;render()">${isThisWeek?'本周':'回到本周'}</button>
+          <button class="btn sm" onclick="workWeek++;render()">下一周 ›</button>
+          <button class="btn sm primary" onclick="openPlanModal()">＋ 添加任务</button>
+        </span>
       </div>
-      <div class="progress" style="margin:10px 0 12px"><div style="width:${pct}%"></div></div>
+      <div class="progress" style="margin:6px 0 12px"><div style="width:${pct}%"></div></div>
       <div class="day-strip">
         ${days.map((ds,i)=>{
           const dp = plans.filter(p=>p.day===i+1);
@@ -2980,7 +2988,7 @@ PAGES['/work'] = () => {
       </div>
     </div>
     <div class="card card-pad">
-      <div class="sec-title">${kico('todo',18)} ${workDay==='all'?'全部任务':PLAN_DAYS[+workDay-1]+'的任务'} <span class="chip gray" style="margin-left:4px">${list.length} 项</span></div>
+      <div class="sec-title">${kico('todo',18)} ${workDay==='all'?'本周全部任务':PLAN_DAYS[+workDay-1]+'的任务'} <span class="chip gray" style="margin-left:4px">${list.length} 项</span></div>
       ${list.length ? list.map(p=>`
         <div class="row ${p.status==='done'?'done':''}" style="cursor:pointer" onclick="cyclePlan('${p.id}')">
           <span style="width:18px;text-align:center">${p.status==='done'?'✅':p.status==='doing'?'🔄':'⬜'}</span>
@@ -2998,7 +3006,9 @@ PAGES['/work'] = () => {
       <div class="sec-title">${kico('review',18)} 上周完成回顾 <span class="chip gray" style="margin-left:4px">${lastDone.length} 项</span></div>
       ${lastDone.slice(0,6).map(p=>`<div class="row done"><span style="width:18px;text-align:center">✅</span><span class="grow t">${esc(p.title)}</span><span class="chip">${PLAN_DAYS[p.day-1]}</span></div>`).join('')}
     </div>` : ''}`;
-};
+}
+/* 兼容旧链接：#/work 直接进入整合后的「今日任务」页 */
+PAGES['/work'] = () => PAGES['/todo']();
 /* ---------- 公众号阅读清单（移动端优先：单列卡片 + 点击展开 + 分类筛选） ---------- */
 let gzTab = 'all', gzCat = '全部', gzOpenId = null;
 const GZ_CATS = ['政策','招聘','行业动态','其他'];
@@ -3042,7 +3052,7 @@ function openGzModal(id){
   });
   document.getElementById('f-gz-title').focus();
 }
-PAGES['/gongzhong'] = () => {
+function gzView(){
   const all = dt('gz');
   const unread = all.filter(a=>a.status==='unread').length;
   const stars  = all.filter(a=>a.status==='star').length;
@@ -3056,11 +3066,15 @@ PAGES['/gongzhong'] = () => {
     : a.status==='star' ? '<span class="chip pink">⭐ 星标</span>' : '<span class="chip gray">待读</span>';
   const filtered = gzTab!=='all' || gzCat!=='全部';
   return `
-    ${pageHead('gongzhong','公众号','关注的公众号文章阅读清单', `
+    ${pageHead('hot','热点情报','热点解读 + 公众号文章阅读清单', `
       <button class="btn sm" onclick="render();toast('已刷新')">⟳ 刷新</button>
       <button class="btn sm" onclick="gzTop()">↑ 回顶部</button>
       <span class="chip pink">待读 ${unread}</span><span class="chip gray">星标 ${stars}</span>
       <button class="btn primary sm" onclick="openGzModal()">＋ 添加文章</button>`)}
+    <div class="tabs" style="margin-bottom:12px">
+      <button class="tab ${duTab==='hot'?'active':''}" onclick="duTab='hot';render()">${kico('hot',14)} 热点解读</button>
+      <button class="tab ${duTab==='gz'?'active':''}" onclick="duTab='gz';render()">${kico('gongzhong',14)} 公众号清单</button>
+    </div>
     <div class="card card-pad" style="margin-bottom:14px">
       <div class="tabs" style="margin-bottom:8px">
         ${stTabs.map(([k,l])=>`<button class="tab ${gzTab===k?'active':''}" onclick="gzTab='${k}';render()">${l}${k==='unread'&&unread?` · ${unread}`:''}</button>`).join('')}
@@ -3092,90 +3106,22 @@ PAGES['/gongzhong'] = () => {
       <div class="sec-title">${kico('thought',18)} 小贴士</div>
       <div class="small muted">外部原文链接（公众号/36kr/微博等）经常需要登录或黑屏，卡片不再展示跳转按钮。所有文章都已内置「提炼正文」（800字以内）和「招聘启示」（2-3条行动建议），点开直接能看。每周清一次「待读」，别让清单变成压力～</div>
     </div>`;
-};
+}
+/* 热点 + 公众号整合为一个入口：同一套页内 tab 切换 */
+function duView(){ return duTab === 'gz' ? gzView() : hotView(); }
+PAGES['/hotspot'] = duView;
+PAGES['/gongzhong'] = duView;
 
-/* ---------- 视频拆解（抖音爆款） ---------- */
-/* 静态演示数据（固定日期，仅首次演示样式用，不会每日刷新；真实内容靠素材池投喂 + AI 拆解） */
-const VD_DEMO = [
-  { date:'2026-01-01', cat:'清洁好物种草类', title:'洗衣机用久了比马桶还脏？3个信号说明该洗它了', author:'家清研究所', likes:'48.2w', saves:'12.6w', url:'',
-    d:{ topic:'痛点：洗衣机天天洗衣服却没人洗它，脏衣=贴身衣物二次污染，健康焦虑 + 冷知识反差',
-        struct:'0-3s 惊悚对比画面（洗衣机内筒拆开 vs 马桶）+ 提问钩子；3-20s 三个信号逐条排比（衣服有霉味/内筒有黑渣/皮肤痒）；20-40s 产品出场演示前后对比；结尾引导收藏"收藏起来周末就洗"',
-        copy:'开头钩子："你敢信吗？你天天穿的干净衣服，可能是在脏水里洗出来的"；中段每条信号都用"出现这个情况=马上要洗"句式；结尾"别等衣服痒了才想起来"',
-        bgm:'悬疑紧凑型电子鼓点，配合内筒拆开画面放大冲击感；后半段切轻快节奏呼应"解决"',
-        idea:'直接复刻：3个信号说明你家的洗衣机该洗了 → 可平移到"3个信号说明你家地板该除垢了/锅底该换新了"，开头钩子改成"你家的地板是不是刚拖完又脏了？"' } },
-  { date:'2026-01-01', cat:'反转剧情类', title:'婆婆嫌我乱买清洁剂，结果锅底黑垢一擦就掉…', author:'小鹿的省钱日记', likes:'36.8w', saves:'9.4w', url:'',
-    d:{ topic:'家庭矛盾自带流量（婆媳）+ 产品功效反转，情绪先行、种草在后',
-        struct:'0-2s 冲突开场（婆婆皱眉拿起清洁剂）制造期待；2-15s 被质疑 → 默默演示；15-25s 黑锅底一擦即净的画面反转 + 婆婆表情反差；结尾一句"省下的钱给您买排骨"收情绪',
-        copy:'台词少而狠："妈，这瓶能让你少刷半小时锅"；反转点只用画面+一声"哎哟"表达；全程口语化无广告腔',
-        bgm:'前段无 BGM 只留环境音增强真实感，反转瞬间进轻快治愈钢琴，情绪对比强',
-        idea:'把"婆媳"换"室友/老公"，产品换鞋袜除臭喷雾："老公嫌我乱买喷雾，结果他最臭的鞋……"；核心是冲突开场+演示反转+情绪收尾三段式' } },
-  { date:'2026-01-01', cat:'美妆借鉴类', title:'卸妆膏 exporters 都在抄的"三明治"卸妆法', author:'阿圆的化妆台', likes:'52.1w', saves:'18.9w', url:'',
-    d:{ topic:"方法论命名策略：给用法起专属名字（三明治卸妆法），降低记忆成本、制造传播点",
-        struct:'0-3s 结果前置（浓妆卸完素颜无残留）；3-30s 三步法慢动作演示，每步一个字卡；30s 后对比实验（卸妆棉二次擦拭无残留）',
-        copy:'专业感话术："以油溶油，这是化学"；步骤口诀化：干手干脸—乳化—冲洗；评论区埋互动问题"你们那叫什么方法？"',
-        bgm:'ASMR 系轻响（膏体摩擦声、水流声），营造解压沉浸感',
-        idea:'把"三明治卸妆法"移植成"三明治擦锅法：喷—敷—擦"，给锅底除垢剂起专属方法论名；ASMR 解压风可直接用于清洁剂出泡沫/擦净画面的声音设计' } },
-  { date:'2025-12-31', cat:'知识口播类', title:'地板清洁剂的 3 个使用误区，90% 家庭都中招', author:'清洁师老周', likes:'22.4w', saves:'11.2w', url:'',
-    d:{ topic:'专业人设辟谣型：纠正错误常识（乱用清洁剂越拖越黏），建立信任后顺带种草',
-        struct:'0-3s 数字悬念"90%家庭都中招"；3-35s 三误区各配一个翻车画面；结尾一句正确用法 + 产品自然露出',
-        copy:'开头钩子："地板越拖越黏？问题不在地板，在你用的东西"；每条误区以"错！/大错特错！"开头，节奏短促',
-        bgm:'轻快口播底噪（lo-fi 节奏），不抢人声，保持"专家讲课"氛围',
-        idea:'同款结构做"洗脚液篇：洗脚≠洗袜子，3 个误区"；口播人设可用工装+实操场景强化专业感' } },
-  { date:'2025-12-31', cat:'清洁好物种草类', title:'小白鞋发黄别扔！一招还原出厂白', author:'球鞋护理君', likes:'31.5w', saves:'14.8w', url:'',
-    d:{ topic:'旧物拯救型选题：发黄小白鞋是高频痛点，"别扔"制造挽留感',
-        struct:'0-3s 前后对比前置（最脏状态 → 全白）；3-30s 全程一镜到底实操；结尾展示同款护理全家福',
-        copy:'开头钩子："先别扔！你家的发黄小白鞋还有救"；步骤动词开头：喷、静置、刷、冲；结尾"学会了吗，学会扣1"',
-        bgm:'轻快治愈吉他扫弦，配快剪节奏卡点',
-        idea:'复刻为"锅底发黑别扔！一招还原出厂亮"，前后对比前置 + 一镜到底实操是家清品万能模板' } },
-];
-let vdTab = 'today';
-let crOpen = {};
-/* ---------- AI 创意库与脚本生成（每日 3 思路 + 3 脚本） ---------- */
-const CR_DEMO = [
-  { id:'cr_demo1', date:'2026-01-01', type:'idea', title:'3个信号说明你家的洗衣机该洗了',
-    pain:'衣服越洗越有霉味，家人以为衣服质量差，其实是内筒两年没洗',
-    sell:'活氧除垢免拆洗，倒进去泡一泡，污垢自己掉', form:'知识口播 + 实拍污水对比', industryRef:false,
-    content:'痛点：洗衣机是被忽略的"二次污染源"，霉味衣服引发健康焦虑。场景：晾衣服闻到霉味/宝宝皮肤痒，妈妈自查发现内筒脏污。产品切入点：康思嘉洗衣机清洗剂用"3个信号"承接自查需求，演示倒入→泡出污水→清水对比，制造认知反转，CTA 引导收藏+囤货。',
-    sourceVideo:'洗衣机比马桶还脏530倍？（今日拆解）', createdAt:new Date().toISOString() },
-  { id:'cr_demo2', date:'2026-01-01', type:'idea', title:'锅底黑垢一擦掉：婆婆的三次改观',
-    pain:'锅底黑垢刷三年刷不掉，钢丝球都无能为力',
-    sell:'一喷一敷一擦，3分钟还原锅底本色，不伤锅不伤手', form:'剧情反转 + 前后对比', industryRef:false,
-    content:'痛点：重油污是厨房最高频抱怨，"刷锅累"情绪共鸣强。场景：周末大扫除/婆婆帮忙刷锅翻车。产品切入点：驱大侠锅底除垢剂在"被质疑→默默演示→一擦掉"的反转结构里完成功效证明，情绪点放在家人关系收尾（"妈您歇着，这个不用刷"）。',
-    sourceVideo:'婆婆说我买的除垢剂是智商税？（今日拆解）', createdAt:new Date().toISOString() },
-  { id:'cr_demo3', date:'2026-01-01', type:'idea', title:'"三明治擦锅法"：给除垢剂起个方法论名',
-    pain:'观众记不住产品功能，但记得住方法名',
-    sell:'喷—敷—擦三步口诀化，产品即方法', form:'方法论命名 + ASMR 演示', industryRef:true,
-    content:'跨行业借鉴：美妆类·三明治卸妆法。痛点：清洁内容同质化，用户划走快。场景：把"三明治卸妆法"结构平移——干锅喷驱大侠锅底除垢剂（第一层）、静置敷3分钟（第二层）、一擦净（第三层）。产品切入点：步骤口诀化"喷—敷—擦"，字卡逐层出现，ASMR 收音放大解压感，评论区互动"你们家锅底几年没洗了？"',
-    sourceVideo:'卸妆膏"三明治"卸妆法（今日拆解·美妆借鉴）', createdAt:new Date().toISOString() },
-  { id:'cr_demo4', date:'2026-01-01', type:'script', title:'洗衣机"该洗了"知识口播脚本', product:'康思嘉洗衣机清洗剂', form:'知识口播', industryRef:false,
-    script:[
-      { time:'0-3s',  shot:'特写：内筒拆出的黑褐色污垢块（打侧光）', copy:'你天天穿的干净衣服，可能是在脏水里洗出来的', sound:'低频悬疑鼓点', prop:'脏污内筒' },
-      { time:'4-12s', shot:'中景：口播人手持字卡，逐条出现3个信号', copy:'衣服有霉味、筒里有黑渣、穿完皮肤痒——中一个，就该洗它了', sound:'节奏口播底噪', prop:'字卡板' },
-      { time:'13-22s', shot:'近景：整瓶倒入洗衣机，启动浸泡程序', copy:'不用拆机，倒一瓶，泡一小时', sound:'液体注入声', prop:'康思嘉洗衣机清洗剂' },
-      { time:'23-32s', shot:'特写：排出的污水 vs 清水对比杯', copy:'看，这就是你家洗衣机里的东西', sound:'重音"咚"', prop:'两杯水对比' },
-      { time:'33-40s', shot:'中景：晾出洁白衣物，家庭阳台场景', copy:'每三个月洗一次，全家穿放心衣，收藏起来周末就做', sound:'轻快治愈钢琴', prop:'干净衣物' },
-    ],
-    sourceVideo:'洗衣机比马桶还脏530倍？（今日拆解）', createdAt:new Date().toISOString() },
-  { id:'cr_demo5', date:'2026-01-01', type:'script', title:'锅底黑垢"婆媳反转"剧情脚本', product:'驱大侠锅底除垢剂', form:'反转剧情', industryRef:false,
-    script:[
-      { time:'0-2s',  shot:'近景：婆婆拿起清洁剂皱眉', copy:'（婆婆）又是智商税吧？锅底黑垢刷三年都刷不掉', sound:'无BGM，环境音', prop:'驱大侠锅底除垢剂' },
-      { time:'3-10s', shot:'特写：喷在黑锅底，药液铺满', copy:'妈，这瓶能让你少刷半小时锅', sound:'喷壶"哧哧"声', prop:'脏锅底' },
-      { time:'11-18s', shot:'中景：静置中摆一个时钟快进空镜', copy:'（字幕）敷3分钟', sound:'轻快过渡音', prop:'时钟' },
-      { time:'19-26s', shot:'特写：厨房纸一擦，黑垢整片掉落', copy:'（婆婆）哎哟……', sound:'反转瞬间进钢琴', prop:'厨房纸巾' },
-      { time:'27-35s', shot:'中景：锃亮锅底展示，婆婆笑', copy:'干净得像新买的。妈，以后刷锅的活儿它干，您歇着', sound:'欢快收尾BGM', prop:'洗净的锅底' },
-    ],
-    sourceVideo:'婆婆说我买的除垢剂是智商税？（今日拆解）', createdAt:new Date().toISOString() },
-  { id:'cr_demo6', date:'2026-01-01', type:'script', title:'"三明治擦锅法"ASMR脚本', product:'驱大侠锅底除垢剂', form:'ASMR沉浸式', industryRef:true,
-    script:[
-      { time:'0-3s',  shot:'特写：黑垢锅底占满画面，手指敲锅', copy:'（字幕）锅底3年没洗，试试三明治擦锅法', sound:'敲击声收音', prop:'脏锅底' },
-      { time:'4-10s', shot:'特写：第一层，喷嘴横扫喷满锅底', copy:'（字幕）第一层：喷', sound:'喷雾ASMR收音', prop:'驱大侠锅底除垢剂' },
-      { time:'11-17s', shot:'特写：药液在黑垢上冒细泡', copy:'（字幕）第二层：敷3分钟', sound:'气泡声放大', prop:'静置空镜' },
-      { time:'18-25s', shot:'特写：厨房纸单方向擦过，露出金属色', copy:'（字幕）第三层：擦', sound:'摩擦ASMR+水滴音', prop:'厨房纸巾' },
-      { time:'26-33s', shot:'中景：前后对比双画面，光斑闪过', copy:'喷—敷—擦，你们家锅底几年没洗了？评论区报个数', sound:'轻快电子收尾', prop:'对比分屏' },
-    ],
-    sourceVideo:'卸妆膏"三明治"卸妆法（今日拆解·美妆借鉴）', createdAt:new Date().toISOString() },
-];
-function crFind(id){ return CR_DEMO.find(c=>c.id===id) || dt('creatives').find(c=>c.id===id); }
+/* ---------- AI 模型设置（招聘作战台 / 热点解读共用） ---------- */
+/* 统一错误文案：不暴露技术细节，给出可执行的下一步 */
+function aiErr(e){
+  const m = String(e && e.message || e || '');
+  if (/401|403|invalid.*key|unauthor/i.test(m)) return 'Key 无效或已过期（可留空，改用内置模式）';
+  if (/429|quota|余额|额度|insufficient/i.test(m)) return '当前模型额度已耗尽，请稍后再试';
+  if (/timeout|abort/i.test(m)) return '请求超时，请稍后再试';
+  if (/Failed to fetch|NetworkError|network/i.test(m)) return '网络不可用，已切换内置模式';
+  return m || '请求失败';
+}
 function copyText(t, tip){
   const done = () => toast(tip || '已复制到剪贴板 🍊');
   const fallback = () => {
@@ -3192,458 +3138,31 @@ function copyText(t, tip){
     setTimeout(()=>{ if(!settled){ settled = true; fallback(); } }, 1500);
   } else fallback();
 }
-function crCopyIdea(id){
-  const c = crFind(id); if (!c) return;
-  copyText(`【创作思路】${c.title}\n痛点：${c.pain}\n差异化卖点：${c.sell}\n建议拍摄形式：${c.form}\n详情：${c.content}\n来源拆解：${c.sourceVideo||'—'}${c.industryRef?'\n🏷 跨行业借鉴':''}`, '思路已复制，可直接发给编导 🍊');
-}
-function crCopyScript(id){
-  const c = crFind(id); if (!c) return;
-  const rows = (c.script||[]).map(r=>`${r.time} | ${r.shot} | ${r.copy} | ${r.sound} | ${r.prop}`).join('\n');
-  copyText(`【参考脚本】${c.title}\n适用产品：${c.product||''} ｜ 拍摄形式：${c.form||''}${c.industryRef?' ｜ 跨行业借鉴':''}\n格式：时间轴 | 画面描述（景别） | 口播文案/字幕 | 音效/BGM | 道具/产品\n${rows}`, '脚本已复制，可直接发给编导 🍊');
-}
-function crTableHtml(c){
-  const rows = (c.script||[]).map(r=>`<tr><td>${esc(r.time)}</td><td>${esc(r.shot)}</td><td>${esc(r.copy)}</td><td>${esc(r.sound)}</td><td>${esc(r.prop)}</td></tr>`).join('');
-  return `<table class="cr-table"><thead><tr><th>时间轴</th><th>画面描述（景别）</th><th>口播文案/字幕</th><th>音效/BGM</th><th>道具/产品</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-function crWord(id){
-  const c = crFind(id); if (!c) return;
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(c.title)}</title></head><body style="font-family:Microsoft YaHei"><h2>${esc(c.title)}</h2><p>适用产品：${esc(c.product||'')} ｜ 拍摄形式：${esc(c.form||'')}${c.industryRef?' ｜ 跨行业借鉴':''}</p>${crTableHtml(c).replace(/class="cr-table"/,'border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse"')}${c.sourceVideo?`<p>来源拆解：${esc(c.sourceVideo)}</p>`:''}</body></html>`;
-  const blob = new Blob(['\ufeff' + html], { type:'application/msword' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `脚本-${(c.title||'分镜脚本').slice(0,20)}.doc`;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
-  toast('Word 已导出 🍊');
-}
-function crPrint(id){
-  const c = crFind(id); if (!c) return;
-  const w = window.open('', '_blank');
-  if (!w) { toast('浏览器拦截了弹出窗口，请允许弹窗'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(c.title)}</title><style>body{font-family:'Microsoft YaHei',sans-serif;padding:28px;color:#333}h2{color:#e0447e}table{border-collapse:collapse;width:100%}th,td{border:1px solid #f0a8c4;padding:8px 10px;font-size:13px;text-align:left;vertical-align:top}th{background:#FFE4B5;color:#B55A1F}.meta{color:#888;font-size:13px}</style></head><body><h2>${esc(c.title)}</h2><p class="meta">适用产品：${esc(c.product||'')} ｜ 拍摄形式：${esc(c.form||'')}${c.industryRef?' ｜ 跨行业借鉴':''}</p>${crTableHtml(c)}<script>window.onload=()=>window.print()<\/script></body></html>`);
-  w.document.close();
-}
-function crIdeaCard(c){
-  return `<div class="card card-pad" style="position:relative">
-    ${c.industryRef?`<span class="chip pink" style="position:absolute;top:14px;right:14px">跨行业借鉴</span>`:''}
-    <div style="display:flex;align-items:flex-start;gap:12px;${c.industryRef?'padding-right:92px;':''}">
-      <div style="line-height:1;padding-top:2px">${kico('star',24)}</div>
-      <div style="flex:1;min-width:200px">
-        <b>${esc(c.title)}</b>
-        <div style="margin-top:10px;display:grid;gap:7px">
-          <div class="small"><span class="chip amber" style="min-width:56px;text-align:center">痛点</span> ${esc(c.pain||'')}</div>
-          <div class="small"><span class="chip green" style="min-width:56px;text-align:center">卖点</span> ${esc(c.sell||'')}</div>
-          <div class="small"><span class="chip blue" style="min-width:56px;text-align:center">形式</span> ${esc(c.form||'')}</div>
-        </div>
-        <div class="small muted" style="margin-top:10px;line-height:1.75">${esc(c.content||'')}</div>
-        ${c.sourceVideo?`<div class="small muted" style="margin-top:8px">🎯 来源拆解：${esc(c.sourceVideo)}</div>`:''}
-      </div>
-    </div>
-    <div style="margin-top:10px;text-align:right"><button class="btn sm" onclick="crCopyIdea('${c.id}')">📋 一键复制</button></div>
-  </div>`;
-}
-function crScriptCard(c){
-  const open = !!crOpen[c.id];
-  return `<div class="card" style="overflow:hidden">
-    <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;flex-wrap:wrap" onclick="crOpen['${c.id}']=!crOpen['${c.id}'];render()">
-      <span class="chip pink">${esc(c.form||'脚本')}</span>
-      <b style="flex:1;min-width:170px">${esc(c.title)}</b>
-      ${c.product?`<span class="chip">${esc(c.product)}</span>`:''}
-      ${c.industryRef?`<span class="chip pink">跨行业借鉴</span>`:''}
-      <span class="small muted">${open?'收起 ▲':'展开分镜 ▼'}</span>
-    </div>
-    ${open?`<div style="padding:0 18px 14px;overflow-x:auto">
-      ${crTableHtml(c)}
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:flex-end">
-        <button class="btn sm" onclick="crCopyScript('${c.id}')">📋 复制到剪贴板</button>
-        <button class="btn sm" onclick="crWord('${c.id}')">📄 导出 Word</button>
-        <button class="btn sm" onclick="crPrint('${c.id}')">🖨 导出 PDF</button>
-      </div>
-      ${c.sourceVideo?`<div class="small muted" style="margin-top:8px">🎯 来源拆解：${esc(c.sourceVideo)}</div>`:''}
-    </div>`:''}
-  </div>`;
-}
-function vdCard(v){
-  const dims = [['选题',v.d.topic],['结构',v.d.struct],['文案',v.d.copy],['BGM',v.d.bgm],['思路',v.d.idea]];
-  return `<div class="card card-pad vd-card">
-    <div class="vd-head">
-      <span class="chip pink">${esc(v.cat)}</span>
-      <span class="vd-title">${esc(v.title)}</span>
-    </div>
-    <div class="vd-meta">
-      <span>👤 @${esc(v.author)}</span><span>👍 ${esc(v.likes)}</span><span>⭐ ${esc(v.saves)}</span><span>📅 ${esc(v.date)}</span>
-    </div>
-    <div class="vd-dims">
-      ${dims.map(([k,val])=>`<div class="vd-dim"><span class="vd-k">${k}</span><span class="vd-v">${esc(val)}</span></div>`).join('')}
-    </div>
-    <div class="vd-foot">
-      <span class="small muted">${v.url?`<a href="${esc(v.url)}" target="_blank" rel="noopener">🔗 视频原链接</a>`:''}</span>
-      <a class="btn sm primary" href="${esc(vdHomeUrl())}" target="_blank" rel="noopener" style="text-decoration:none">${kico('phone',14)} 打开我的抖音主页</a>
-    </div>
-  </div>`;
-}
-/* ---------- 方案A：投喂式 AI 拆解（OpenAI 兼容接口） ---------- */
-let vdBusy = {};
-const VD_SYS_PROMPT = `你是资深抖音短视频运营专家，服务一家主营日化家清产品的公司（产品线：地板清洁剂、锅底除垢剂、鞋袜除臭喷雾、洗脚液、小白鞋清洗剂、洗衣机清洗剂），聚焦家庭清洁场景。
-请根据用户提供的视频标题/链接/备注，按 5 个固定维度输出"具体到能落地实操"的拆解：
-- topic 选题：用了什么痛点/情绪/人群
-- struct 结构：黄金前3秒做了什么；中段如何推进/转折；结尾如何引导
-- copy 文案：开头钩子的原话风格示例；中段句式；结尾 CTA
-- bgm BGM：音乐风格与情绪营造
-- idea 思路：如何把这套结构复刻到日化家清产品上，必须给出具体的新标题示例
-另输出 cat 分类（从：清洁好物种草类/反转剧情类/知识口播类/剧情种草类/测评对比类/美妆借鉴类 中选一个）。
-严格输出 JSON，不要输出任何其他文字：{"cat":"","title":"","author":"","topic":"","struct":"","copy":"","bgm":"","idea":""}
-中文输出，每个维度 40~90 字，要具体、可执行、禁止空话套话。`;
-
-function vdHomeUrl(){ return (S.vdCfg && S.vdCfg.homeUrl) || '#'; }
-function vdAllVideos(){ return (S.videos||[]).length ? S.videos : VD_DEMO; }
-function vdRun(id){
-  const v = S.videos.find(x=>x.id===id);
-  if (v && !vdBusy[id]) callVDAI(v);
-}
-/* 统一错误文案：不暴露技术细节，给出可执行的下一步 */
-function aiErr(e){
-  const m = String(e && e.message || e || '');
-  if (/401|403|invalid.*key|unauthor/i.test(m)) return 'Key 无效或已过期（可留空，改用本地模板）';
-  if (/429|quota|余额|额度|insufficient/i.test(m)) return '当前模型额度已耗尽，请稍后再试';
-  if (/timeout|abort/i.test(m)) return '请求超时，请稍后再试';
-  if (/Failed to fetch|NetworkError|network/i.test(m)) return '网络不可用，已切换本地模式';
-  return m || '请求失败';
-}
-/* 无 Key / 模型不可用时的本地模板拆解（不依赖任何外部服务） */
-const VD_LOCAL_KINDS = [
-  { kw:['锅','油污','厨房','灶'], cat:'痛点解决类',
-    hook:'怼近拍焦黑锅底/厚油污，手指一划留痕', mid:'放大“刷半天刷不掉”的挫败感', demo:'倒清洁剂+热水，静置 10 分钟', end:'一擦见底，前后同机位对比', act:'评论区扣「1」领同款' },
-  { kw:['鞋','鞋柜','除臭','球鞋','袜'], cat:'场景种草类',
-    hook:'开门瞬间捂鼻子，镜头扫过一排鞋', mid:'脱下鞋凑近拍，字幕“自己都受不了”', demo:'喷两下，计时器走 30 秒', end:'同一双鞋再闻，表情反转', act:'点购物车看 3 双装' },
-  { kw:['洗脚','泡脚','脚','汗'], cat:'季节刚需类',
-    hook:'一盆温水+泡脚特写，字幕「第 1 天」', mid:'说出脚汗/异味的真实尴尬场景', demo:'倒入洗脚液，展示泡沫与溶解', end:'擦干后穿袜不粘，字幕「第 7 天」', act:'拍 2 发 3，先囤一箱' },
-  { kw:['洗衣机','洗衣','胶圈','霉'], cat:'测评揭秘类',
-    hook:'拆开胶圈怼近拍黑泥，配惊讶音效', mid:'棉签取样放培养皿做对比', demo:'倒入清洗剂，空转一个标准程序', end:'排水桶里的黑水直接怼镜头', act:'三个月一次，链接在左下角' },
-  { kw:['地板','拖地','瓷砖','拖把','腥味'], cat:'前后对比类',
-    hook:'半干拖把一拖，地面立刻反光倒影', mid:'点出“越拖越腥”的根因在拖把', demo:'换清洁剂+同一把拖把重拖一遍', end:'纸巾擦地不留痕，光脚走一圈', act:'拍下 24 瓶家庭装' },
-  { kw:['小白鞋','发黄','白鞋'], cat:'教程干货类',
-    hook:'两只鞋一只白一只黄并排对比', mid:'说出“洗完发黄”的真实原因', demo:'刷洗→包纸→阴干三步演示', end:'撕纸瞬间的洁白特写', act:'收藏这条，下次照做' },
-];
-function localBreakdown(v){
-  const t = String((v && v.title) || '') + ' ' + String((v && v.note) || '');
-  const k = VD_LOCAL_KINDS.find(x => x.kw.some(w => t.includes(w))) || VD_LOCAL_KINDS[4];
-  return {
-    cat: k.cat,
-    topic: `【本地模板】围绕「${(v && v.title) || '该选题'}」的${k.cat}，主线：痛点 → 演示 → 结果 → 行动`,
-    struct: `0-3s 钩子：${k.hook}；3-8s 放大痛点：${k.mid}；8-20s 产品介入：${k.demo}；20-30s 结果与行动：${k.end}，${k.act}`,
-    copy: `口播参考：①「${k.hook}」；②「你是不是也这样：${k.mid}」；③「别急着换，先看这一步」；④「${k.end}」；⑤「${k.act}」`,
-    bgm: '轻快卡点 BGM（120-130BPM），演示段叠加「叮」音效强调前后对比，结尾音量收一半留白',
-    idea: '可模仿点：同机位前后对比 + 关键数字大字幕 + 结尾一句明确行动指令；封面用「对比图 + 疑问句」'
-  };
-}
-async function callVDAI(v){
-  const cfg = S.vdCfg||{};
-  /* 未配置 Key：直接用本地模板拆解，不弹窗、不阻断 */
-  if (!cfg.apiKey) { applyVdLocal(v, '未启用模型，已用本地模板拆解'); return; }
-  vdBusy[v.id] = true; render();
-  try {
-    const res = await fetchWithTimeout(cfg.apiUrl||'https://api.deepseek.com/v1/chat/completions', 90000, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+cfg.apiKey },
-      body: JSON.stringify({
-        model: cfg.model||'deepseek-chat', temperature: 0.7,
-        messages: [
-          { role:'system', content: VD_SYS_PROMPT },
-          { role:'user',   content: `视频标题：${v.title}\n视频链接：${v.url||'无'}${v.note?`\n补充信息：${v.note}`:''}` }
-        ]
-      })
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(()=> '');
-      throw new Error('API 返回 ' + res.status + (body ? ' ' + body.replace(/\s+/g,' ').slice(0,80) : ''));
-    }
-    const j = await res.json();
-    let txt = (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || '';
-    txt = txt.replace(/```json|```/g, '').trim();
-    const m = txt.match(/\{[\s\S]*\}/);
-    const d = JSON.parse(m ? m[0] : txt);
-    const item = { ...v, status:'done', local:false,
-      cat: d.cat || v.cat || '清洁好物种草类',
-      title: d.title || v.title,
-      author: d.author || v.author || '待确认',
-      d:{ topic:d.topic||'', struct:d.struct||'', copy:d.copy||'', bgm:d.bgm||'', idea:d.idea||'' } };
-    update({ ...S, videos: S.videos.map(x=>x.id===v.id?item:x) });
-    toast('🍊 拆解完成：' + (item.title||'').slice(0,14) + '…');
-  } catch(e){
-    applyVdLocal(v, '模型不可用（' + aiErr(e) + '），已切换本地模板');
-  }
-  vdBusy[v.id] = false; render();
-}
-function applyVdLocal(v, msg){
-  const d = localBreakdown(v);
-  const item = { ...v, status:'done', local:true, cat:d.cat, title:v.title,
-    author:v.author||'待确认', d:{ topic:d.topic, struct:d.struct, copy:d.copy, bgm:d.bgm, idea:d.idea } };
-  update({ ...S, videos: S.videos.map(x=>x.id===v.id?item:x) });
-  toast('🍊 ' + msg);
-}
-function parseVdLines(raw){
-  const out = [];
-  raw.split('\n').map(s=>s.trim()).filter(Boolean).forEach(line=>{
-    const m = line.match(/https?:\/\/[^\s，,、）)】\]]+/);
-    const url = m ? m[0] : '';
-    let title = line.replace(/https?:\/\/\S+/, '').replace(/^[\s\d.,、.·~\-—]+/, '').trim();
-    if (!title && url) title = '未命名视频';
-    if (title || url) out.push({ title, url });
-  });
-  return out;
-}
-function openVdFeed(prefTitle, prefUrl){
-  const prefill = prefTitle ? `${prefTitle}${prefUrl ? ' ' + prefUrl : ''}` : '';
-  openModal('投喂视频 · AI 自动拆解', `
-    <div class="field"><label>视频列表（每行一条，抖音分享文案整行粘贴即可，会自动识别链接和标题）</label>
-      <textarea id="f-vd-lines" style="min-height:110px" placeholder="例如：
-8.88 复制打开抖音… https://v.douyin.com/xxxx 洗衣机该洗了
-洗衣机用久了比马桶还脏？ https://v.douyin.com/yyyy">${esc(prefill)}</textarea></div>
-    <div class="field"><label>补充说明（可选，告诉 AI 重点关注什么）</label>
-      <input type="text" id="f-vd-note" placeholder="例如：重点拆前 3 秒的反转设计"></div>`, async () => {
-    const lines = parseVdLines(document.getElementById('f-vd-lines').value);
-    if (!lines.length) { toast('请至少粘贴一条视频链接'); return; }
-    const note = document.getElementById('f-vd-note').value.trim();
-    const items = lines.map(l => ({ id:uid(), date:today(), cat:'待拆解', title:l.title, author:'待确认',
-      likes:'-', saves:'-', url:l.url, note, status:'pending',
-      d:{ topic:'', struct:'', copy:'', bgm:'', idea:'' }, added_at:new Date().toISOString() }));
-    update({ ...S, videos:[...items, ...S.videos] });
-    closeModal();
-    toast(`已加入 ${items.length} 条，开始 AI 拆解…`);
-    for (const it of items) await callVDAI(it);
-  });
-  document.getElementById('f-vd-lines').focus();
-}
-function vdFeedFromBoard(i){
-  const arr = ((S.boards||{}).boards||{}).news || [];
-  const x = arr[i];
-  if (!x) return;
-  openVdFeed(x.t, x.l);
-}
-
-/* ---------- 家清信息流选题池（系统配置的模型生成，无 Key 时用行业选题库兜底） ---------- */
-const CLEAN_KW = ['家清','日化','清洁','清洗','除垢','除臭','去污','去渍','油污','水垢','除霉','拖地','拖把','扫地','洗地','洗衣机','锅底','小白鞋','球鞋','鞋袜','脚臭','洗脚','泡脚','地板','瓷砖','下水道','浴室','厨房','卫生间','螨','洗衣','洗洁','收纳','消毒','宠物','母婴','香氛','抹布'];
-const CLEAN_SEEDS = [
-  { t:'拖完地总有一股腥味？问题不在水在拖把', a:'开场把拖把怼到镜头前，甩出一滩黑水', w:'强反差+生活高频痛点，完播率高' },
-  { t:'锅底烧黑别用钢丝球硬蹭，泡 10 分钟自己化', a:'前 3 秒烧焦锅底特写，第 3 秒倒水起泡', w:'前后对比强，转化意图明确' },
-  { t:'小白鞋洗完发黄，是少做了这一步', a:'两只鞋一只白一只黄并排对比', w:'人群极广，评论区必吵' },
-  { t:'洗衣机槽掏出一把黑泥，衣服越洗越脏', a:'拆开胶圈怼近拍黑泥，配惊讶音效', w:'视觉冲击，家清类常青爆款' },
-  { t:'鞋柜一开门熏人，喷两下第二天没味', a:'开门瞬间捂鼻子，镜头扫过一排鞋', w:'场景真实，除臭喷雾直接种草' },
-  { t:'客人进门先看地板，3 分钟擦出反光', a:'半干拖把一拖，地面立刻反光倒影', w:'结果可视化，适合信息流' },
-  { t:'夏天脚汗重，睡前泡 10 分钟就不酸了', a:'一盆温水+泡脚特写，字幕打「第 1 天/第 7 天」', w:'季节性刚需，复购强' },
-  { t:'厨房台面那层油膜，纸巾一擦就透亮', a:'手指划过油膜留痕，喷完一擦见亮', w:'即时反馈，演示成本低' },
-  { t:'出租屋退租清洁，2 小时还原样板间', a:'脏乱房间→干净房间的同机位快剪', w:'剧情+改造，涨粉快' },
-  { t:'地毯上的宠物尿渍，这样处理不留味', a:'紫外灯照出尿渍，再演示清洁', w:'养宠人群精准，痛点真' },
-  { t:'浴室玻璃水垢，白醋不管用，它 30 秒化开', a:'半面玻璃对比，一喷一刮', w:'对比直观，易出爆款' },
-  { t:'宝宝满地爬，地板清洁真别只用清水', a:'宝宝手掌擦地后放大看灰', w:'母婴人群，信任感强' },
-  { t:'全屋大扫除顺序错了，越擦越脏', a:'错误顺序/正确顺序双屏对照', w:'知识口播，收藏率高' },
-  { t:'洗衣机 3 个月不洗，比马桶还脏？实测', a:'棉签取样 + 培养皿对比', w:'测评类，适合投流' },
-];
-/* 由 Trae 内置模型预生成的家清选题（构建期写入，页面无需任何 Key） */
-const PRESET_CLEAN = {
-  model: 'TRAE 内置模型',
-  items: [
-    { t:'洗地机 vs 拖把，100 平实拍谁先干', w:'对比测评天然带争议，评论区会吵起来', a:'两台机器并排启动，左上角计时器' },
-    { t:'洗衣机胶圈黑泥，棉签一取样我沉默了', w:'视觉冲击强，家清常青爆款', a:'拆开胶圈怼近拍黑泥，配惊讶音效' },
-    { t:'锅底烧黑别硬蹭，泡 10 分钟自己化', w:'前后对比直接，转化意图明确', a:'焦黑锅底特写→倒水起泡' },
-    { t:'拖完地一股腥味，根因在拖把不在水', w:'反常识钩子，覆盖所有家庭', a:'把拖把怼镜头，甩出一滩黑水' },
-    { t:'小白鞋洗完发黄，差的是包纸这一步', w:'教程属性强，收藏率高', a:'两只鞋一白一黄并排对比' },
-    { t:'鞋柜一开门熏人，喷两下第二天没味', w:'场景真实，除臭喷雾直接种草', a:'开门瞬间捂鼻子，镜头扫过一排鞋' },
-    { t:'夏天脚汗重，睡前泡 10 分钟就不酸了', w:'季节性刚需，复购强', a:'温水泡脚特写，字幕「第 1 天」' },
-    { t:'浴室玻璃水垢，白醋不管用，它 30 秒化开', w:'对比直观，易出爆款', a:'半面玻璃对比，一喷一刮' },
-    { t:'宝宝满地爬，地板清洁真别只用清水', w:'母婴人群信任感强', a:'宝宝手掌擦地后放大看灰' },
-    { t:'宠物尿渍留味，紫外灯一照全现形', w:'养宠人群精准，痛点真', a:'关灯打紫外灯，尿渍发光' },
-    { t:'出租屋退租清洁，2 小时还原样板间', w:'剧情改造，涨粉快', a:'脏乱房间→干净房间同机位快剪' },
-    { t:'全屋大扫除顺序错了，越擦越脏', w:'知识口播，收藏率高', a:'错误顺序/正确顺序双屏对照' },
-  ]
-};
-function cleanPoolItems(day){
-  const cp = S.cleanPool || {};
-  return cp.date === (day || today()) ? (cp.items || []) : [];
-}
-let cleanBusy = false;
-async function buildCleanPool(force, silent){
-  if (!force && cleanPoolItems().length) return true;
-  if (cleanBusy) return false;
-  cleanBusy = true;
-  if (!silent) toast('🍊 正在抓取热点并生成家清选题…');
-  try {
-    await ensureBoards(false, true);
-    const hot = ((S.boards||{}).boards||{}).news || [];
-    const hit = hot.filter(x => CLEAN_KW.some(k => String(x.t||'').includes(k))).slice(0, 4)
-      .map(x => ({ t: String(x.t).slice(0, 40), tag:'热点', l: x.l, v: x.v, w:'今日热点，可借势转成家清角度', a:'开场先复述热点，3 秒内切到清洁痛点' }));
-    let ai = [];
-    const cfg = S.vdCfg || {};
-    if (aiReady()) {
-      const list = hot.slice(0, 18).map((x, i) => `${i+1}. ${x.t}`).join('\n');
-      const sys = `你是日化家清品牌（产品：地板清洁剂、锅底除垢剂、鞋袜除臭喷雾、洗脚液、小白鞋清洗剂、洗衣机清洗剂）的抖音信息流内容策划。只输出 JSON 数组，不要任何解释。`;
-      const user = `今日全网热点：\n${list || '（暂无）'}\n\n请产出 8 条抖音信息流「家清」爆款选题：
-1) 最多 3 条能从上述热点自然嫁接家居清洁/日化个护话题的（tag 用"热点"）；
-2) 其余基于上述产品真实使用场景原创（tag 用"原创"）。
-硬性要求：必须与家清产品强相关；严禁时政、军事、灾难、明星八卦；每条给出开头 3 秒画面或台词。
-格式：[{"t":"选题，≤28字，带冲突或钩子","tag":"热点"或"原创","w":"为什么能起量，≤30字","a":"开头3秒画面或台词，≤30字"}]`;
-      try {
-        const arr = parseAiJson(await aiChat(sys, user), true);
-        if (Array.isArray(arr)) ai = arr.filter(x => x && x.t).slice(0, 8).map(x => ({
-          t: String(x.t).slice(0, 40), tag: x.tag === '热点' ? '热点' : '原创',
-          w: String(x.w || '').slice(0, 40), a: String(x.a || '').slice(0, 40) }));
-      } catch(e){ if (!silent) toast('模型暂不可用（' + aiErr(e) + '），已用预生成选题'); }
-    }
-    const base = ai.length ? ai : PRESET_CLEAN.items.map(s => ({ ...s, tag:'AI预生成' }));
-    let items = [...base.filter(x => x.tag === '热点'), ...hit, ...base.filter(x => x.tag !== '热点')];
-    const rot = dayOfYear() % CLEAN_SEEDS.length;
-    [...CLEAN_SEEDS.slice(rot), ...CLEAN_SEEDS.slice(0, rot)].forEach(s => {
-      if (items.length >= 10) return;
-      if (!items.some(x => x.t === s.t)) items.push({ t: s.t, tag:'行业选题', w: s.w, a: s.a });
-    });
-    items = items.slice(0, 10);
-    update({ ...S, cleanPool: { date: today(), ts: Date.now(),
-      model: ai.length ? (cfg.model || '') : PRESET_CLEAN.model,
-      usedAI: ai.length > 0, preset: !ai.length, items } });
-    if (!silent) toast(ai.length
-      ? `🍊 ${cfg.model || 'AI'} 已生成 ${items.length} 条家清选题`
-      : `已更新家清选题池（${items.length} 条，Trae 预生成 + 本地内容，无需 Key）`);
-  } catch(e) {
-    if (!silent) toast('选题池更新失败：' + aiErr(e) + '，稍后重试即可');
-  }
-  cleanBusy = false; render();
-  return true;
-}
-function vdFeedClean(i){
-  const x = cleanPoolItems()[i];
-  if (!x) return;
-  openVdFeed(x.t, x.l || '');
-  if (x.a) toast('💡 建议开头：' + x.a);
-}
-
 function openVdCfg(){
   const c = S.vdCfg||{};
   openModal('模型设置（可选，不填也能用）', `
     <div class="card card-pad" style="background:linear-gradient(135deg,#FFF8EE,#fff);margin-bottom:12px">
-      <div style="font-size:13px;line-height:1.6">默认<b>零 Key 模式</b>已可用：家清选题池用 Trae 内置模型预生成，拆解走本地模板，不联网、不花钱。<br>只有想接自己的模型时才需要填下面的信息，留空即可。</div>
+      <div style="font-size:13px;line-height:1.6">默认<b>零 Key 模式</b>已可用：招聘每日推送、热点解读用内置预生成内容，面试对练走本地模板，不联网、不花钱。<br>只有想接自己的模型时才需要填下面的信息，留空即可。</div>
     </div>
     <div class="field"><label>API 地址（可选）</label><input type="text" id="f-vd-api" value="${esc(c.apiUrl||'https://api.deepseek.com/v1/chat/completions')}" placeholder="https://api.deepseek.com/v1/chat/completions"></div>
-    <div class="field"><label>API Key（可选，留空即用本地模式）</label><input type="password" id="f-vd-key" value="${esc(c.apiKey||'')}" placeholder="留空即可，不影响使用"></div>
+    <div class="field"><label>API Key（可选，留空即用内置模式）</label><input type="password" id="f-vd-key" value="${esc(c.apiKey||'')}" placeholder="留空即可，不影响使用"></div>
     <div class="field"><label>模型名称（可选）</label><input type="text" id="f-vd-model" value="${esc(c.model||'deepseek-chat')}" placeholder="deepseek-chat / glm-4-flash / moonshot-v1-8k 等"></div>
-    <div class="field"><label>我的抖音主页链接（可选）</label><input type="url" id="f-vd-home" value="${esc(c.homeUrl||'')}" placeholder="https://www.douyin.com/user/你的ID"></div>
     <div class="small muted">💡 兼容 OpenAI 格式的服务均可：DeepSeek / 智谱 GLM / Kimi / 豆包等。</div>
-    <div class="small muted">🍊 填了 Key 后：家清选题池 / 视频拆解 / 招聘每日推送 / 热点解读 / 面试对练 会走模型；Key 失效或额度用尽时自动回退本地模式，并给出提示，不会报错崩溃。</div>
+    <div class="small muted">🍊 填了 Key 后：招聘每日推送 / 热点解读 / 面试对练 会走模型；Key 失效或额度用尽时自动回退内置模式，并给出提示，不会报错崩溃。</div>
     <div style="margin-top:8px"><button class="btn sm" onclick="clearVdCfg()">🧹 清除已保存的 Key（恢复零 Key 模式）</button></div>`, () => {
     update({ ...S, _keyClearedAt:0, vdCfg:{ apiUrl:document.getElementById('f-vd-api').value.trim(),
       apiKey:document.getElementById('f-vd-key').value.trim(),
       model:document.getElementById('f-vd-model').value.trim()||'deepseek-chat',
-      homeUrl:document.getElementById('f-vd-home').value.trim() } });
+      homeUrl:'' } });
     closeModal(); toast('AI 设置已保存 🍊');
-    buildCleanPool(true, false);
   });
 }
 function clearVdCfg(){
   update({ ...S, _keyClearedAt: Date.now(), vdCfg:{ ...(S.vdCfg||{}), apiKey:'' } });
   closeModal();
-  toast('已清除 Key，切回本地零 Key 模式');
-  buildCleanPool(true, true);
+  toast('已清除 Key，切回内置零 Key 模式');
 }
-function vdPendingCard(v){
-  const busy = vdBusy[v.id];
-  return `<div class="card card-pad vd-card">
-    <div class="vd-head"><span class="chip gray">⏳ 待拆解</span><span class="vd-title">${esc(v.title)}</span></div>
-    <div class="vd-meta">
-      ${v.url?`<span>🔗 ${esc(v.url.replace(/^https?:\/\//,'').slice(0,36))}…</span>`:''}<span>📅 ${esc(v.date)}</span>
-    </div>
-    <div class="vd-dims" style="opacity:.75">
-      <div class="vd-dim"><span class="vd-k">…</span><span class="vd-v muted">${busy?'🍊 AI 正在按 选题/结构/文案/BGM/思路 五个维度拆解，约需 10~30 秒…':'等待生成拆解。点「生成拆解」即可——没配 Key 时自动用本地模板，无需任何设置。'}</span></div>
-    </div>
-    <div class="vd-foot">
-      <span class="small muted">${v.note?'📝 '+esc(v.note):''}</span>
-      <span style="display:flex;gap:6px;align-items:center">
-        <button class="btn sm primary" onclick="vdRun('${v.id}')">${busy?'拆解中…':'▶ 生成拆解'}</button>
-        <button class="icon-btn" title="删除" onclick="delItem('videos','${v.id}');toast('已删除');render()">✕</button>
-      </span>
-    </div>
-  </div>`;
-}
-PAGES['/videos'] = () => {
-  const t = today();
-  const all = dt('videos');
-  const pend = all.filter(v=>v.status==='pending');
-  const done = all.filter(v=>v.status!=='pending');
-  const usingDemo = !all.length;
-  /* 今日拆解 = 最新一批（跨时区稳健：定时任务按北京时间写入，本地日期可能晚/早一天） */
-  const doneDates = [...new Set(done.map(v=>v.date).filter(Boolean))].sort();
-  const latest = usingDemo ? t : (doneDates[doneDates.length-1] || t);
-  const fmtD = ds => `${ds.slice(0,4)}年${+ds.slice(5,7)}月${+ds.slice(8,10)}日`;
-  const todayList = usingDemo ? VD_DEMO : done.filter(v=>v.date===latest);
-  const histDates = usingDemo ? [] : doneDates.filter(ds=>ds!==latest).reverse();
-  const histOf = ds => done.filter(v=>v.date===ds);
-  /* AI 创意库：最新一批的 3 思路 + 3 脚本 */
-  const crAll = dt('creatives');
-  const crDates = [...new Set(crAll.map(c=>c.date).filter(Boolean))].sort();
-  const crLatest = crDates[crDates.length-1];
-  const usingCrDemo = !crAll.length;
-  const crIdeasShow = usingCrDemo ? CR_DEMO.filter(c=>c.type==='idea')
-    : (crLatest ? crAll.filter(c=>c.date===crLatest && c.type==='idea') : []);
-  const crScriptsShow = usingCrDemo ? CR_DEMO.filter(c=>c.type==='script')
-    : (crLatest ? crAll.filter(c=>c.date===crLatest && c.type==='script') : []);
-  /* 今日家清选题池（由「AI 设置」里配置的模型筛选生成） */
-  const pool = cleanPoolItems(t);
-  const cp = S.cleanPool || {};
-  const poolMeta = pool.length
-    ? `${cp.usedAI ? 'AI · ' + esc(cp.model || '已配置模型') : (cp.preset ? 'Trae 预生成' : '行业选题库')} · ${new Date(cp.ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})} 更新`
-    : '未生成';
-  const poolHtml = `
-    <div class="card card-pad" style="margin-bottom:12px;border-color:var(--primary-200)">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-        <div class="sec-title" style="margin:0">🍊 今日家清选题池 <span class="small muted" style="font-weight:400">${poolMeta}</span></div>
-        <span style="display:flex;gap:6px">
-          <button class="btn sm" onclick="openVdCfg()">⚙ 模型</button>
-          <button class="btn sm primary" onclick="buildCleanPool(true,false)">⟳ 更新</button>
-        </span>
-      </div>
-      ${pool.length ? pool.map((x,i) => `
-        <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--primary-100)">
-          <span style="flex:none;width:20px;text-align:center;font-weight:700;color:${i<3?'var(--primary-strong)':'var(--muted)'};font-size:12.5px;padding-top:1px">${i+1}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;line-height:1.45">${x.l?`<a href="${esc(x.l)}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none">${esc(x.t)}</a>`:esc(x.t)}</div>
-            <div class="small muted" style="font-size:11.5px;margin-top:2px">${x.tag==='热点'?'🔥 热点借势':'✨ '+(x.tag||'原创')}${x.w?' · '+esc(x.w):''}${x.a?' · 开头：'+esc(x.a):''}</div>
-          </div>
-          <button class="btn sm" style="flex:none" onclick="vdFeedClean(${i})">拆解</button>
-        </div>`).join('')
-      : `<div class="small muted" style="padding:8px 0 2px">今天还没有选题，点「更新」即可生成（无需配置任何 Key，直接用内置预生成选题库）。</div>`}
-      <div class="small muted" style="font-size:11.5px;margin-top:8px">💡 默认零 Key：选题来自 Trae 内置模型预生成 + 行业库轮换，拆解走本地模板；想接自己的模型再在「AI 设置」里选填 Key。</div>
-    </div>`;
-  return `
-    ${pageHead('phone','抖音热门视频拆解','每日拆解爆款 · 提供创作思路 · 可模仿复刻', `
-      <button class="btn sm" onclick="openVdCfg()">⚙ 模型设置</button>
-      <button class="btn primary sm" onclick="openVdFeed()">＋ 投喂视频</button>
-      <span class="chip pink" style="font-weight:700">📅 ${fmtD(t)}</span>`)}
-    <div class="tabs" style="margin-bottom:12px">
-      <button class="tab ${vdTab==='today'?'active':''}" onclick="vdTab='today';render()">${kico('hot',14)} 今日拆解</button>
-      <button class="tab ${vdTab==='ideas'?'active':''}" onclick="vdTab='ideas';render()">${kico('star',14)} 每日灵感 ${crIdeasShow.length?`<span style="font-size:10px">(${crIdeasShow.length})</span>`:''}</button>
-      <button class="tab ${vdTab==='scripts'?'active':''}" onclick="vdTab='scripts';render()">${kico('todo',14)} 参考脚本 ${crScriptsShow.length?`<span style="font-size:10px">(${crScriptsShow.length})</span>`:''}</button>
-      <button class="tab ${vdTab==='hist'?'active':''}" onclick="vdTab='hist';render()">${kico('bookopen',14)} 历史记录</button>
-    </div>
-    ${vdTab==='today' ? `
-      ${poolHtml}
-      ${usingDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">🍊 以下为静态示例拆解（仅演示样式，不会每日变化）。真实更新：从上方「今日爆款素材池」挑一条点「拆解」，或点右上「＋ 投喂视频」。</span></div>`
-        :(!pend.length && latest!==t?`<div class="small muted" style="margin-bottom:8px">当前显示最新一批拆解（${fmtD(latest)} 生成）</div>`:'')}
-      ${pend.map(vdPendingCard).join('')}
-      ${todayList.length ? todayList.map(vdCard).join('')
-        : (pend.length ? '' : `<div class="card wip"><div class="em">${kico('phone',36)}</div><b>今日拆解还没生成</b><p>点右上「＋ 投喂视频」提交抖音链接，AI 会按 选题/结构/文案/BGM/思路 五个维度自动拆解～</p></div>`)}`
-    : vdTab==='ideas' ? `
-      ${usingCrDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">🍊 以下为静态示例灵感（不会每日变化）。投喂视频生成拆解后，AI 会基于真实拆解产出新的思路并写入云端。</span></div>`
-        : (crLatest && crLatest!==t?`<div class="small muted" style="margin-bottom:8px">当前显示最新一批灵感（${fmtD(crLatest)} 生成）</div>`:'')}
-      ${crIdeasShow.length ? crIdeasShow.map(crIdeaCard).join('')
-        : `<div class="card wip"><div class="em">${kico('star',36)}</div><b>还没有灵感</b><p>从素材池投喂视频生成拆解后，AI 会基于真实拆解产出创作思路，写入云端后这里就能看到～</p></div>`}`
-    : vdTab==='scripts' ? `
-      ${usingCrDemo?`<div class="card card-pad" style="margin-bottom:12px;border-style:solid;border-color:var(--primary-200);background:linear-gradient(135deg,#fff,#FFF5EB)"><span class="small muted">🍊 以下为静态示例脚本（不会每日变化）。点标题展开分镜表，支持一键复制 / 导出 Word / 导出 PDF。</span></div>`:''}
-      ${crScriptsShow.length ? crScriptsShow.map(crScriptCard).join('')
-        : `<div class="card wip"><div class="em">${kico('todo',36)}</div><b>还没有参考脚本</b><p>AI 会与灵感同步生成可直接开拍的分镜脚本，含 时间轴/画面/口播/音效/道具 五栏～</p></div>`}`
-    : (histDates.length ? histDates.map(ds=>`
-          <div class="sec-title" style="margin:4px 0 10px">${kico('cal',18)} <span class="vd-date-chip">${fmtD(ds)}</span> <span class="chip gray" style="margin-left:4px">${histOf(ds).length} 条</span></div>
-          ${histOf(ds).map(vdCard).join('')}`).join('')
-        : `<div class="card wip"><div class="em">${kico('bookopen',36)}</div><b>还没有历史拆解</b><p>每天的拆解会自动归档到这里，随时回看复盘～</p></div>`)}`;
-};
+
 
 /* ---------- 养生知识 ---------- */
 const HEALTH_HABITS = [
@@ -4334,7 +3853,7 @@ PAGES['/automation'] = () => {
         </div>
       </div>`;}).join('')}
     <div class="card card-pad small muted" style="margin-bottom:6px;background:linear-gradient(135deg,#FFF8EE,#fff)">
-      💡 「今日热点」抓取全网热榜后，默认用 Trae 预生成的家清选题库补齐（零 Key）；在「模型设置」里填了 Key 的话，会改用它筛出与家清相关的选题并写入「视频拆解 · 今日家清选题池」，拆解也走同一模型。其余抓取源为公开 RSS 热榜/科技媒体，按频道关键词过滤后提炼要点写入知识库；抓取失败时自动注入「编内精选」知识（每日轮换）。请保持本页面打开（可安装为桌面 App），到点即自动执行。
+      💡 「今日热点」抓取全网热榜后写入「热点情报」，未配置 Key 时用内置预生成内容兜底；其余抓取源为公开 RSS 热榜/科技媒体，按频道关键词过滤后提炼要点写入知识库；抓取失败时自动注入「编内精选」知识（每日轮换）。请保持本页面打开（可安装为桌面 App），到点即自动执行。
     </div>
 
     <div class="sec-title" style="margin-top:20px">${kico('flag',18)} 我的例行流程 <span class="chip">手动登记，由 AI 定时任务执行</span></div>
@@ -4598,8 +4117,7 @@ async function runHotFeed(silent){
     const others = dt('hotspots').filter(x => x.fetch_date !== today() || !String(x.source||'').startsWith('自动抓取'));
     update({ ...S, hotspots:[...hotItems, ...others],
       jobs: { ...(S.jobs||{}), hot: { lastDate: today(), lastTs: Date.now(), lastCount: hotItems.length, ok: true } } });
-    if (!silent) toast('🔥 今日热榜已同步到「热点」页');
-    await buildCleanPool(true, true);      /* 抓完热点后，用系统配置的模型筛出今日家清选题 */
+    if (!silent) toast('🔥 今日热榜已同步到「热点情报」');
   } else {
     update({ ...S, jobs: { ...(S.jobs||{}), hot: { lastDate: today(), lastTs: Date.now(), lastCount: 0, ok: false } } });
     if (!silent) toast('🔥 热榜抓取失败，可点按钮重试');
@@ -4655,7 +4173,7 @@ async function ensureDailyNews(force, silent){
   }
 }
 
-/* ---------- AI 每日推送引擎（作战台 learn + 热点解读 hot，复用视频拆解的 AI 配置） ---------- */
+/* ---------- AI 每日推送引擎（作战台 learn + 热点解读 hot，复用同一份 AI 配置） ---------- */
 const KB_ROLES = ['编导','投流手','直播运营','电商运营','客服主管','短视频运营','私域运营','主播','HRBP','仓储物流主管'];
 const KB_STAGES = ['需求对接','职位分析','寻访触达','面试评估','谈薪入职','试用期管理'];
 function aiReady(){ return !!((S.vdCfg||{}).apiKey); }
@@ -5021,7 +4539,7 @@ function buildNav(){
   const html = NAV.map((n, i) => {
     let head = '';
     if (n.group && n.group !== last) { head = `<div class="nav-group-title">${esc(n.group)}</div>`; last = n.group; }
-    return head + `<a class="nav-item ${n.path===currentPath?'active':''}" style="--i:${i}" href="#${n.path}" data-path="${n.path}">
+    return head + `<a class="nav-item ${n.path===currentPath?'active':''}" style="--i:${i}" href="#${n.path}" data-path="${n.path}"${n.path==='/hotspot'?" onclick=\"duTab='hot';if(currentPath==='/hotspot')render()\"":''}">
       <span class="nav-ico"><span class="em">${kico(n.icon, 30)}</span>${n.badge?`<i class="nav-badge">${n.badge}</i>`:''}</span>
       <span class="nav-label">${esc(n.label)}</span>
       ${n.path==='/reminders' ? '<span class="chip pink" style="margin-left:auto;font-size:10px;padding:1px 7px;display:none" id="navRemBadge"></span>' : ''}
@@ -5070,6 +4588,8 @@ function route(){
   const h = location.hash.slice(1) || '/';
   if (/^\/(read|book)\//.test(h)) { render(); return; }   /* 阅读器由 render 统一处理 */
   currentPath = h;
+  if (h === '/gongzhong') duTab = 'gz';
+  else if (h === '/hotspot') duTab = 'hot';
   if (!PAGES[currentPath]) currentPath = '/';
   render();
 }
@@ -5097,7 +4617,6 @@ buildNav();
 loadStore();
 syncFeedNotes(); saveLocal();
 route();
-setTimeout(() => { if (S.settings.feeds) buildCleanPool(false, true); }, 6000);   // 今日家清选题池（当天已生成则跳过）
 checkReminders();
 setInterval(() => checkReminders(false), 15000);
 setInterval(() => { runDueJobs(); ensureBoards(false, true); ensureDailyNews(false, true); runDueAI(); }, 60000);   // 每分钟检查抓取/AI 计划与新的一天
